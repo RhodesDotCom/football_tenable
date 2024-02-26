@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Game</title>
+        <link rel="stylesheet" href="{{ url_for('game_bp.static', filename='styles/stylesheet.css') }}">
+    </head>
+    <body>
+        <div class="banner">
+            <h1>
+                {{ question }}
+            </h1>
+        </div>
+        <div>
+            <div class="half-page">
+                <form action="{{ url_for('game_bp.game') }}" method="POST">
+                    <input type="text" name="guess" id="guess" autofocus="autofocus">
+                </form>
+                <div id="info"></div>
+            </div>
+            <div class="half-page">
+                <div id="answers-background">
+                    {% for i in range(10) %}
+                        {% if answers|length > i %}
+                            <div class="answer" id="answer_"+{{i}}>
+                                <b>{{ answers[i] }}</b>
+                            </div>
+                        {% else %}
+                            <div class="answer" id="answer_"+{{i}}></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>

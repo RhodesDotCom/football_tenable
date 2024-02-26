@@ -1,0 +1,30 @@
+version: '3'
+services:
+
+  tenable-ui:
+    build: ./tenable
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./tenable:/app
+
+  data-api:
+    build: ./data-api
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./data-api:/app 
+
+  postgres:
+    image: postgres:latest
+    container_name: stats_db
+    environment:
+      POSTGRES_DB: stats_db
+      POSTGRES_USER: stats_user
+      POSTGRES_PASSWORD: stats_password
+    ports:
+      - "5432:5432" 
+    volumes:
+      - ./stats-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./stats-db/csv_data:/docker-entrypoint-initdb.d/csv_data
+      - ./stats-db/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
