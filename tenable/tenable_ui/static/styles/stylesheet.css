@@ -1,0 +1,18 @@
+.half-page {
+    float: left;
+    overflow: hidden;
+    border: 0.2vh solid black;
+}
+#answers-background {
+    padding: 0.5vw;
+}
+#info {
+    background-color: solid red;
+}
+.answer {
+    background-color: azure;
+    width: 40vw;
+    height: 2vh;
+    margin: 0.5vh;
+    border: 0.5vh solid black; 
+}
