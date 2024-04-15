@@ -1,18 +1,74 @@
+body {
+    background-color: hsl(203, 41%, 50%);
+    max-width: fit-content;
+    font-family: 'Courier New', Courier, monospace;
+}
+/* div {
+    outline: 1px solid red;
+} */
+/* .courier {
+    font-family: 'Courier New', Courier, monospace;
+} */
 .half-page {
     float: left;
     overflow: hidden;
-    border: 0.2vh solid black;
+    /* border: 0.2vh solid black; */
 }
 #answers-background {
     padding: 0.5vw;
 }
-#info {
+/* #info {
     background-color: solid red;
-}
+} */
 .answer {
     background-color: azure;
     width: 40vw;
+    max-width: 500px;
     height: 2vh;
+    min-height: 21px;
     margin: 0.5vh;
     border: 0.5vh solid black; 
+    padding: 2px;
+}
+#guess {
+   margin: 0.1vw;
+   border-width: 0.2vw;
+   border-color: azure; 
+}
+.full-width {
+    width: 100%;
+}
+.center-align {
+    text-align: center;
+}
+#info-table tr {
+    text-align: center;
+}
+.curved-border{
+    border: 2px solid black;
+    border-radius: 5%;
+}
+.popup {
+    width: 30%;
+    height: fit-content;
+    max-width: 300px;
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    transform: translate(-50%, -50%);
+    border: 4px solid black;
+    padding: 4px;
+    background-color: rgb(154, 212, 127);
+    text-align: center;
+}
+.popup h2 {
+    color: red;
+}
+.popup button {
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
 }
