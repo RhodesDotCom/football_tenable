@@ -17,9 +17,14 @@ body {
 #answers-background {
     padding: 0.5vw;
 }
-/* #info {
-    background-color: solid red;
-} */
+#info {
+    width: 10vw;
+    min-width: 192px;
+    margin: 0.5vw;
+    border-width: 0.5vh;
+    background-color: azure;
+
+}
 .answer {
     background-color: azure;
     width: 40vw;
@@ -31,9 +36,11 @@ body {
     padding: 2px;
 }
 #guess {
-   margin: 0.1vw;
-   border-width: 0.2vw;
-   border-color: azure; 
+    width: 10vw;
+    min-width: 192px;
+    margin: 0.5vw;
+    border-width: 0.2vw;
+    border-color: azure; 
 }
 .full-width {
     width: 100%;

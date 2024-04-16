@@ -1,4 +1,4 @@
-from flask import render_template, request, session, current_app
+from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
 
 from tenable_ui.routes import game_bp
@@ -18,6 +18,7 @@ def initiate_session_variables():
         session['question'] = 'Premier League Golden Boot Winners'
     if not session.get('response'):
         response = get_golden_boot_winners()
+        session['response'] = response
         session['correct_answers'] = [d['player'] for d in response]
     if not session.get('lives'):
         session['lives'] = 3
@@ -49,6 +50,9 @@ def game():
             correct_guesses = session.get('correct_guesses', [])
             correct_guesses.append(answer)
             session['correct_guesses'] = correct_guesses
+            
+            info = create_info(answer)
+            
         elif not repeat:
             lives = session.get('lives', 0)
             session['lives'] = lives-1
@@ -64,7 +68,7 @@ def game():
         # players=session.get('players', []),
         answers=session.get('correct_guesses', []),
         lives=session.get('lives', 3),
-        info=session.get('info', []),
+        info=info if 'info' in locals() else [],
         game_over=game_over
     )
 
@@ -119,11 +123,24 @@ def check_guess(guess):
 
 
 def create_info(answer):
-    response = session.get('response')
-
+    answers = session.get('response', [])
+    
     info = []
-    for dic in response:
+
+    current_app.logger.info(answers)
+
+    for dic in answers:
         if dic['player'] == answer:
             info.append({'season': dic['season'], 'goals': dic['goals']})
 
     return info
+
+
+@game_bp.route('/get_info/<player>', methods=['GET'])
+def get_info(player):
+    info = []
+    answers = session.get('response', [])
+    for dic in answers:
+        if dic['player'] == player:
+            info.append({'season': dic['season'], 'goals': dic['goals']})
+    return jsonify(info)

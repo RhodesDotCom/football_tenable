@@ -14,7 +14,7 @@
             </h1>
         </div>
         <div>
-            <div class="half-page">
+            <div id="left-side" class="half-page">
                 <div class="center-align" id="hp">
                     {% for i in range(1,4) %}
                         {% if i > lives %}
@@ -32,33 +32,17 @@
                         {% endfor %}
                     </datalist> -->
                 </form>
-                {% if info|length > 0 %}
-                    <div id="info" class="curved-border">
-                            <h2 class="center-align">{{ answers[-1] }}</h2>
-                            <table class="full-width" id=info-table>
-                                <tr>
-                                    <th>Season</th>
-                                    <th>Goals</th>
-                                </tr>
-                                {% for row in info %}
-                                    <tr>
-                                        <td>{{ row['season'] }}</td>
-                                        <td>{{ row['goals'] }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </table>
-                    </div>
-                {% endif %}
+
             </div>
             <div class="half-page">
                 <div id="answers-background">
                     {% for i in range(10) %}
                         {% if answers|length > i %}
-                            <div class="answer" id="answer_"+{{i}}>
+                            <div class="answer" id="answer_{{ i }}">
                                 <b>{{ answers[i] }}</b>
                             </div>
                         {% else %}
-                            <div class="answer" id="answer_"+{{i}}></div>
+                            <div class="answer" id="answer_{{ i }}"></div>
                         {% endif %}
                     {% endfor %}
                 </div>
@@ -77,4 +61,11 @@
 
     </body>
     <script src="{{ url_for('game_bp.static', filename='js/game.js') }}"></script>
+    
+    {% if info|length > 0 %}
+        <script>
+            display_info('{{answers[-1]}}', '{{info | tojson}}')
+        </script>
+    {% endif %}
+    
 </html>
