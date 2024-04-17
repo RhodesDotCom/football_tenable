@@ -1,7 +1,10 @@
 body {
     background-color: hsl(203, 41%, 50%);
-    max-width: fit-content;
+
     font-family: 'Courier New', Courier, monospace;
+}
+.game-body{
+    max-width: fit-content;
 }
 /* div {
     outline: 1px solid red;
@@ -16,6 +19,10 @@ body {
 }
 #answers-background {
     padding: 0.5vw;
+}
+.banner {
+    display: flex;
+    justify-content: center;
 }
 #info {
     width: 10vw;
@@ -52,7 +59,9 @@ body {
     text-align: center;
 }
 .curved-border{
-    border: 2px solid black;
+    border-width: 2px;
+    border-style: solid;
+    border-color: black;
     border-radius: 5%;
 }
 .popup {
@@ -78,4 +87,21 @@ body {
     padding: 0;
     cursor: pointer;
     font-family: inherit;
+}
+.footer {
+    margin-top: 20vh;
+}
+.three-quarter-page {
+    display: flex;
+    width: 75%;
+    margin: 2vw;
+    margin-top: 20vh;
+    justify-content: space-evenly;
+}
+.menu-buttons {
+    display: flex;
+    justify-content: center;
+    border-width: 5px;
+    width: 10vw;
+    cursor: pointer;
 }

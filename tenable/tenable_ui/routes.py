@@ -9,3 +9,4 @@ game_bp = Blueprint(
 
 
 from tenable_ui import game
+from tenable_ui import menu

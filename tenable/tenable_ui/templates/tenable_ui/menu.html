@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Main Menu</title>
+        <meta name="description" content="">
+        <link rel="stylesheet" href="{{ url_for('game_bp.static', filename='styles/stylesheet.css') }}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="three-quarter-page">
+            <div class="menu-buttons curved-border" id="daily">
+                <h2>Daily</h2>
+            </div>
+            <div class="menu-buttons curved-border" id="">
+                <h2>Others</h2>
+            </div>
+        </div>
+        <script src="{{ url_for('game_bp.static', filename='js/menu.js') }}" defer></script>
+    </body>
+</html>

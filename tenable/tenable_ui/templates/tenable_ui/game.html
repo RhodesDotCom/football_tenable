@@ -5,67 +5,79 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Game</title>
         <link rel="stylesheet" href="{{ url_for('game_bp.static', filename='styles/stylesheet.css') }}">
+        <link rel="stylesheet" href="{{ url_for('game_bp.static', filename='styles/sidebar.css') }}">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     </head>
-    <body>
-        <div class="banner">
-            <h1>
-                {{ question }}
-            </h1>
+    <body class="game-body">
+
+        <button class="open-sidepanel">&#9776;</button>
+        <div class="sidepanel">
+            <a href="javascript:void(0)" class="closebtn">&times;</a>
+            <a href="{{ url_for('game_bp.main_menu') }}">Menu</a>
+            <a href="#">Other</a>
         </div>
-        <div>
-            <div id="left-side" class="half-page">
-                <div class="center-align" id="hp">
-                    {% for i in range(1,4) %}
-                        {% if i > lives %}
-                            <img src="{{ url_for('game_bp.static', filename='images/heart_empty.png') }}">
-                        {% else %}
-                            <img src="{{ url_for('game_bp.static', filename='images/heart_full.png') }}">
-                        {% endif %}
-                    {% endfor %}
-                </div>
-                <form id="guess-form" action="{{ url_for('game_bp.game') }}" method="POST">
-                    <input type="text" name="guess" id="guess" autofocus="autofocus">
-                    <!-- <datalist id="'players">
-                        {% for player in players %}
-                            <option value="{{ player }}">
+
+        <div class="main">
+            <div class="banner">
+                <h1>
+                    {{ question }}
+                </h1>
+            </div>
+            
+            <div>
+                <div id="left-side" class="half-page">
+                    <div class="center-align" id="hp">
+                        {% for i in range(1,4) %}
+                            {% if i > lives %}
+                                <img src="{{ url_for('game_bp.static', filename='images/heart_empty.png') }}">
+                            {% else %}
+                                <img src="{{ url_for('game_bp.static', filename='images/heart_full.png') }}">
+                            {% endif %}
                         {% endfor %}
-                    </datalist> -->
-                </form>
+                    </div>
+                    <form id="guess-form" action="{{ url_for('game_bp.game') }}" method="POST">
+                        <input type="text" name="guess" id="guess" autofocus="autofocus">
+                        <!-- <datalist id="'players">
+                            {% for player in players %}
+                                <option value="{{ player }}">
+                            {% endfor %}
+                        </datalist> -->
+                    </form>
 
-            </div>
-            <div class="half-page">
-                <div id="answers-background">
-                    {% for i in range(10) %}
-                        {% if answers|length > i %}
-                            <div class="answer" id="answer_{{ i }}">
-                                <b>{{ answers[i] }}</b>
-                            </div>
-                        {% else %}
-                            <div class="answer" id="answer_{{ i }}"></div>
-                        {% endif %}
-                    {% endfor %}
+                </div>
+                <div class="half-page">
+                    <div id="answers-background">
+                        {% for i in range(10) %}
+                            {% if answers|length > i %}
+                                <div class="answer" id="answer_{{ i }}">
+                                    <b>{{ answers[i] }}</b>
+                                </div>
+                            {% else %}
+                                <div class="answer" id="answer_{{ i }}"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
+
+            {% if game_over %}
+                <div class="popup">
+                    <h2>Game Over</h2>
+                    <form action="{{ url_for('game_bp.game_over') }}" method="POST">
+                        <button id="game-over" type="submit">See Answers</button>
+                    </form>
+                </div>
+            {% endif %}
+
         </div>
 
-        {% if game_over %}
-            <div class="popup">
-                <h2>Game Over</h2>
-                <form action="{{ url_for('game_bp.game_over') }}" method="POST">
-                    <button id="game-over" type="submit">See Answers</button>
-                </form>
-            </div>
+        <script src="{{ url_for('game_bp.static', filename='js/game.js') }}"></script>
+        <script src="{{ url_for('game_bp.static', filename='js/sidebar.js') }}"></script>
+            
+        {% if info|length > 0 %}
+            <script>
+                display_info('{{answers[-1]}}', '{{info | tojson}}')
+            </script>
         {% endif %}
-
-
     </body>
-    <script src="{{ url_for('game_bp.static', filename='js/game.js') }}"></script>
-    
-    {% if info|length > 0 %}
-        <script>
-            display_info('{{answers[-1]}}', '{{info | tojson}}')
-        </script>
-    {% endif %}
-    
 </html>

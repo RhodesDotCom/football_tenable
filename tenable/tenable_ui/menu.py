@@ -4,5 +4,6 @@ from unidecode import unidecode
 from tenable_ui.routes import game_bp
 
 
-def index():
-    
+@game_bp.route('/')
+def main_menu():
+    return render_template('tenable_ui/menu.html')
