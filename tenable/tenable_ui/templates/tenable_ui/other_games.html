@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Main Menu</title>
+        <title>Other Games</title>
         <meta name="description" content="">
         <link rel="stylesheet" href="{{ url_for('game_bp.static', filename='styles/stylesheet.css') }}">
         <link rel="stylesheet" href="{{ url_for('game_bp.static', filename='styles/sidebar.css') }}">
@@ -18,20 +18,22 @@
             <a href="#">Other</a>
         </div>
 
-        <div class="main">
-            <div class="three-quarter-page title">
-                <h1>Football Tenable</h1>
+        <div class="categories">
+            <div class="category-flex">
+                <div class="menu-buttons square-border category" id="premier-league-games">
+                    <h2>Premier League</h2>
+                </div>
+                <div class="dropdown menu-buttons square-border">
+                    <h2>&#9660</h2>
+                </div>
             </div>
-             <div class="three-quarter-page">              
-                <div class="menu-buttons curved-border" id="daily">
-                    <h2>Daily Challenge</h2>
-                </div>
-                <div class="menu-buttons curved-border" id="others">
-                    <h2>Others</h2>
-                </div>
+            <div class="games square-border">
+                
             </div>
         </div>
+
         <script src="{{ url_for('game_bp.static', filename='js/menu.js') }}" defer></script>
         <script src="{{ url_for('game_bp.static', filename='js/sidebar.js') }}" defer></script>
+        <script src="{{ url_for('game_bp.static', filename='js/other_games.js') }}" defer></script>
     </body>
 </html>

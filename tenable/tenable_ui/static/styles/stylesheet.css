@@ -64,6 +64,11 @@ body {
     border-color: black;
     border-radius: 5%;
 }
+.square-border {
+    border-width: 5px;
+    border-style: solid;
+    border-color: black;
+}
 .popup {
     width: 30%;
     height: fit-content;
@@ -110,7 +115,7 @@ body {
     color: azure;
     white-space: nowrap;
 }
-.menu-buttons:hover {
+.menu-buttons:not(.category):hover {
     color: hsl(203, 41%, 50%);
 }
 .menu-buttons h2 {
@@ -119,3 +124,40 @@ body {
 .title {
     margin-top: 0;
 }
+.categories {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    margin: 2vw;
+    margin-top: 10vh;
+}
+.category-flex{
+    display: flex;
+    flex: 1;
+    justify-content: left;
+}
+.category {
+    height: 50px;
+    width: 20vw;
+    align-items: center;
+}
+.dropdown {
+    float: left;
+    height: 50px;
+    width: 50px;
+    font-size: large;
+    align-items: center;
+    min-width: unset;
+    margin-left: -10px;
+}
+.games {
+    display: none;
+    flex: 1;
+    background-color: azure;
+    border-width: 5px;
+    border-style: solid;
+    border-color: black;
+    margin-top: 0;
+    border-top: 0;
+}
+
