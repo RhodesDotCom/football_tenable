@@ -30,6 +30,9 @@
 .sidepanel a:hover {
     color: azure;
 }
+.sidepanel a .highlighted {
+    color: grey;
+}
 .open-sidepanel {
     background-color: transparent;
     border: transparent;

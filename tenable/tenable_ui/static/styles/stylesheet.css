@@ -93,7 +93,8 @@ body {
 }
 .three-quarter-page {
     display: flex;
-    width: 75%;
+    width: 50%;
+    min-width: 800px;
     margin: 2vw;
     margin-top: 20vh;
     justify-content: space-evenly;
@@ -102,6 +103,19 @@ body {
     display: flex;
     justify-content: center;
     border-width: 5px;
-    width: 10vw;
+    /* width: 12vw; */
+    min-width: 200px;
     cursor: pointer;
+    background-color: cadetblue;
+    color: azure;
+    white-space: nowrap;
+}
+.menu-buttons:hover {
+    color: hsl(203, 41%, 50%);
+}
+.menu-buttons h2 {
+    padding: 4px;
+}
+.title {
+    margin-top: 0;
 }
