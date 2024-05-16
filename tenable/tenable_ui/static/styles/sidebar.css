@@ -1,0 +1,44 @@
+.main {
+    transition: 0.5s;
+}
+.sidepanel {
+    width: 0px;
+    height: 100vh;
+    background: linear-gradient(to right, hsl(203, 67%, 30%) 0%,hsl(203, 90%, 20%) 100%);
+    position: fixed;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    overflow-x: hidden;
+    padding-top: 50px;
+    transition: 0.5s;
+}
+.sidepanel .closebtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-left: 50px;
+    padding-top: 0;
+    font-size: 32px;
+}
+.sidepanel a{
+    font-size: 25px;
+    color: black;
+    display: block;
+    padding: 8%;
+}
+.sidepanel a:hover {
+    color: azure;
+}
+.sidepanel a .highlighted {
+    color: grey;
+}
+.open-sidepanel {
+    background-color: transparent;
+    border: transparent;
+    font-size: 24px;
+    color: black;
+}
+.open-sidepanel:hover {
+    color: azure;
+}

@@ -39,8 +39,6 @@ $("#game-over").click(function() {
 })
 
 $(".answer").click(function() {
-    console.log('answer clicked')
-
     let answer = $(this).text().trim();
 
     $.ajax({

@@ -11,7 +11,7 @@ app.register_blueprint(game_bp, url_prefix='/game')
 
 @app.route('/')
 def home():
-    return redirect(url_for('game_bp.game'))
+    return redirect(url_for('game_bp.main_menu'))
 
 
 if __name__ == '__main__':

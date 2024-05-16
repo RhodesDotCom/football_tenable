@@ -1,7 +1,10 @@
 body {
     background-color: hsl(203, 41%, 50%);
-    max-width: fit-content;
+
     font-family: 'Courier New', Courier, monospace;
+}
+.game-body{
+    max-width: fit-content;
 }
 /* div {
     outline: 1px solid red;
@@ -16,6 +19,10 @@ body {
 }
 #answers-background {
     padding: 0.5vw;
+}
+.banner {
+    display: flex;
+    justify-content: center;
 }
 #info {
     width: 10vw;
@@ -52,8 +59,15 @@ body {
     text-align: center;
 }
 .curved-border{
-    border: 2px solid black;
+    border-width: 2px;
+    border-style: solid;
+    border-color: black;
     border-radius: 5%;
+}
+.square-border {
+    border-width: 5px;
+    border-style: solid;
+    border-color: black;
 }
 .popup {
     width: 30%;
@@ -78,4 +92,78 @@ body {
     padding: 0;
     cursor: pointer;
     font-family: inherit;
+}
+.footer {
+    margin-top: 20vh;
+}
+.three-quarter-page {
+    display: flex;
+    width: 50%;
+    min-width: 800px;
+    margin: 2vw;
+    margin-top: 20vh;
+    justify-content: space-evenly;
+}
+.menu-buttons {
+    display: flex;
+    justify-content: center;
+    border-width: 5px;
+    /* width: 12vw; */
+    min-width: 200px;
+    cursor: pointer;
+    background-color: cadetblue;
+    color: azure;
+    white-space: nowrap;
+}
+.menu-buttons:not(.category):hover {
+    color: hsl(203, 41%, 50%);
+}
+.menu-buttons h2 {
+    padding: 4px;
+}
+.title {
+    margin-top: 0;
+}
+.categories {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    margin: 2vw;
+    margin-top: 10vh;
+}
+.category {
+    margin-bottom: 1vh; 
+}
+.category-flex{
+    display: flex;
+    flex: 1;
+    justify-content: left;
+}
+.category-title {
+    height: 50px;
+    width: 20vw;
+    align-items: center;
+}
+.dropdown {
+    float: left;
+    height: 50px;
+    width: 50px;
+    font-size: large;
+    align-items: center;
+    min-width: unset;
+    margin-left: -10px;
+}
+.games {
+    display: none;
+    flex: 1;
+    background-color: azure;
+    border-width: 5px;
+    border-style: solid;
+    border-color: black;
+    margin-top: 0;
+    border-top: solid white;
+}
+.game {
+    margin: 5px;
+    border: solid black 3px;
 }
