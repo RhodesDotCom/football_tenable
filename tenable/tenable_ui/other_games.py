@@ -6,9 +6,10 @@ from tenable_ui.routes import game_bp
 @game_bp.route('/others', methods=['GET'])
 def menu():
 
-    
+    games = ['test 1', 'test 2', 'test 3']
 
 
     return render_template(
-        '/tenable_ui/other_games.html'
+        '/tenable_ui/other_games.html',
+        games=games
     )

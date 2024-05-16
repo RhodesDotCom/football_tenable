@@ -131,12 +131,15 @@ body {
     margin: 2vw;
     margin-top: 10vh;
 }
+.category {
+    margin-bottom: 1vh; 
+}
 .category-flex{
     display: flex;
     flex: 1;
     justify-content: left;
 }
-.category {
+.category-title {
     height: 50px;
     width: 20vw;
     align-items: center;
@@ -158,6 +161,9 @@ body {
     border-style: solid;
     border-color: black;
     margin-top: 0;
-    border-top: 0;
+    border-top: solid white;
 }
-
+.game {
+    margin: 5px;
+    border: solid black 3px;
+}

@@ -19,17 +19,39 @@
         </div>
 
         <div class="categories">
-            <div class="category-flex">
-                <div class="menu-buttons square-border category" id="premier-league-games">
-                    <h2>Premier League</h2>
+
+            <div class="category" id="category-premier-league">
+                <div class="category-flex">
+                    <div class="menu-buttons square-border category-title" id="premier-league-games">
+                        <h2>Premier League</h2>
+                    </div>
+                    <div class="dropdown menu-buttons square-border">
+                        <h2>&#9660</h2>
+                    </div>
                 </div>
-                <div class="dropdown menu-buttons square-border">
-                    <h2>&#9660</h2>
+                <div class="games square-border">
+                    {% for game in games %}
+                        <div class="game">game</div>
+                    {% endfor %}
                 </div>
             </div>
-            <div class="games square-border">
-                
+
+            <div class="category" id="category-placeholder">
+                <div class="category-flex">
+                    <div class="menu-buttons square-border category-title" id="placeholder-games">
+                        <h2>Placeholder</h2>
+                    </div>
+                    <div class="dropdown menu-buttons square-border">
+                        <h2>&#9660</h2>
+                    </div>
+                </div>
+                <div class="games square-border">
+                    {% for game in games %}
+                        <div class="game">game</div>
+                    {% endfor %}
+                </div>
             </div>
+
         </div>
 
         <script src="{{ url_for('game_bp.static', filename='js/menu.js') }}" defer></script>
