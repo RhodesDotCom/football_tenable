@@ -6,3 +6,8 @@ $(".dropdown").click(function() {
     games.slideToggle("500");
 
 })
+
+$(".game").click(function() {
+    let title = $(this).text()
+    window.location.href = "/game/game/" + title
+})

@@ -31,7 +31,8 @@
                 </div>
                 <div class="games square-border">
                     {% for game in games %}
-                        <div class="game">game</div>
+                    <!-- NOTE TO SELF, ADD VARIABLE TO URL TO CHOSE GAME MODE -->
+                        <div class="game" id="game_button_{{ loop.index }}">{{ game }}</div>
                     {% endfor %}
                 </div>
             </div>

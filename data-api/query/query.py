@@ -42,6 +42,30 @@ class Queries:
             columns = results.keys()
         
             return self.format_results(columns, results)
+        
+    def get_goals_and_assists(self, goals:int, assists:int):
+            
+        for conn in self.get_conn():
+
+            sql = text('''SELECT player, season, goals, ast
+            FROM stats_schema.goals_and_assists
+            WHERE goals >= :goals and ast >= :assists;''')
+
+            results = conn.execute(sql, {'goals': goals, 'assists': assists})
+            columns = results.keys()
+            current_app.logger.info(results)
+            return self.format_results(columns, results)
+        
+    def get_goals_by_nation(self):
+            
+        for conn in self.get_conn():
+
+            sql = 'SELECT nationality, total_goals FROM stats_schema.goals_by_country_ranked;'
+
+            results = conn.execute(text(sql))
+            columns = results.keys()
+        
+            return self.format_results(columns, results)
     
     
          

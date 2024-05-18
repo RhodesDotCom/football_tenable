@@ -47,4 +47,9 @@ CREATE OR REPLACE VIEW goals_by_country_ranked as
 	having sum(goals) > 0
 	order by total_goals desc;
 
+create view goals_and_assists as
+    select player, season, goals, ast 
+    FROM stats_schema.player_stats
+    order by player, season;
+
 
