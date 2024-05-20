@@ -11,3 +11,4 @@ game_bp = Blueprint(
 from tenable_ui import game
 from tenable_ui import menu
 from tenable_ui import other_games
+from tenable_ui import autocomplete

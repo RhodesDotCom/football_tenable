@@ -1,12 +1,18 @@
 from flask import Flask, redirect, url_for
 
+
 from tenable_ui.routes import game_bp
 from config import Config
+from cache import cache
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+cache.init_app(app)
+
 app.register_blueprint(game_bp, url_prefix='/game')
+
 
 
 @app.route('/')
