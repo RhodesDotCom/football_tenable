@@ -5,7 +5,7 @@ from tenable_ui.routes import game_bp
 from tenable_ui.client import get_all_players
 
 
-@cache.cached(key_prefix='player_list')
+@cache.cached(600 ,key_prefix='player_list')
 def player_list():
     response = get_all_players()
     players = response.get('players', [])
