@@ -53,3 +53,21 @@ $(".answer").click(function() {
         }
     })
 })
+
+$(function() {
+    $('#guess').autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "/game/player_list",
+                dataType: 'json',
+                data: {
+                    query: request.term
+                },
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        minLength: 3,
+    })
+})
