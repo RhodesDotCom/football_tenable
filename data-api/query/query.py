@@ -1,3 +1,4 @@
+import sqlalchemy
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from flask import current_app
@@ -19,16 +20,41 @@ class Queries:
             return [(dict(zip(columns, row))) for row in rows]
 
 
-    def get_all_players(self):
+    def get_inputs(self, category='player'):
+        for conn in self.get_conn():
+
+            column = sqlalchemy.column(category)
+            metadata = sqlalchemy.MetaData()
+            table = sqlalchemy.Table(
+                'player_stats',
+                metadata,
+                autoload_with=conn,
+                schema='stats_schema'
+            )
+            query = sqlalchemy.select(
+                column.distinct()
+            ).select_from(
+                table
+            ).order_by(column)
+            
+            # sql= text('''select distinct :category
+            # FROM stats_schema.player_stats
+            # order by :category;''')
+            
+            results = conn.execute(query)
+            current_app.logger.info('TEST')
+            return {category: [row[0] for row in results]}
+
+    def get_all_nations(self):
         for conn in self.get_conn():
             
-            sql= '''select distinct player
+            sql= '''select distinct nationality
             FROM stats_schema.player_stats
-            order by player;'''
+            order by nationality;'''
             
             results = conn.execute(text(sql))
             
-            return {'players': [row[0] for row in results]}
+            return {'nation': [row[0] for row in results]}
 
     def get_golden_boot_winners(self):
 

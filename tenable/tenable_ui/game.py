@@ -2,9 +2,7 @@ from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
 from pycountry import countries
 
-
 from tenable_ui.routes import game_bp
-from tenable_ui.client import get_golden_boot_winners, get_all_players
 from tenable_ui.games_map import PL_games
 import tenable_ui.games as games
 
@@ -21,12 +19,14 @@ def initiate_session_variables(game_name=None):
     if not session.get('question'):
         session['question'] = game_name
 
+    if not session.get('category'):
+        session['category'] = info.get('category')
+
     if not session.get('response'):
         func = info['func']
         response, answers = func()
         session['response'] = response
         session['correct_answers'] = answers
-        session['player_question'] = True if response[0].get('player', None) else False
 
     if not session.get('lives'):
         session['lives'] = 3
@@ -62,10 +62,10 @@ def game(game_name):
             correct_guesses.append(answer)
             session['correct_guesses'] = correct_guesses
             
-            if session.get('player_question', False):
+            if session.get('category') == 'player':
                 info = _create_info(answer)
             else:
-                info = None
+                info = []
         
         # If answer incorrect and not previously guessed, decrease lives
         elif not repeat:
@@ -78,10 +78,12 @@ def game(game_name):
     else:
         game_over = False
 
+
     return render_template(
         'tenable_ui/game.html',
         game_name=game_name,
         question=session.get('question'),
+        category=session.get('category', None),
         answers=session.get('correct_guesses', []),
         lives=session.get('lives', 3),
         info=info if 'info' in locals() else [],
