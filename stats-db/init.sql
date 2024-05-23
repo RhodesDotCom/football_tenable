@@ -30,6 +30,17 @@ BEGIN
     END IF;
 END $$;
 
+CREATE TABLE IF NOT EXISTS country_code_to_name (
+    country_code VARCHAR(3) NOT NULL,
+    country_name VARCHAR(255) NOT NULL
+);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM country_code_to_name LIMIT 1) THEN
+        COPY country_code_to_name FROM '/docker-entrypoint-initdb.d/csv_data/countries.csv' DELIMITER ',' CSV HEADER;
+    END IF;
+END $$;
+
 CREATE OR REPLACE VIEW player_goals_by_season_ranked as
 	select 
 		player,
