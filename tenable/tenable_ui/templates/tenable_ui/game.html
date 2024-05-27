@@ -12,12 +12,7 @@
     </head>
     <body class="game-body">
 
-        <button class="open-sidepanel">&#9776;</button>
-        <div class="sidepanel">
-            <a href="javascript:void(0)" class="closebtn">&times;</a>
-            <a href="{{ url_for('game_bp.main_menu') }}">Menu</a>
-            <a href="#">Other</a>
-        </div>
+        {% include 'tenable_ui/sidepanel.html' %}
 
         <div class="main">
             <div class="banner">

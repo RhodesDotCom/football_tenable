@@ -1,6 +1,5 @@
 from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
-from pycountry import countries
 
 from tenable_ui.routes import game_bp
 from tenable_ui.games_map import PL_games

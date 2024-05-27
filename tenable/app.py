@@ -1,4 +1,5 @@
 from flask import Flask, redirect, url_for
+import logging
 
 
 from tenable_ui.routes import game_bp
@@ -12,6 +13,11 @@ app.config.from_object(Config)
 cache.init_app(app)
 
 app.register_blueprint(game_bp, url_prefix='/game')
+
+#I think this module is broken, logging level ERROR or higher == NOTSET
+logging.getLogger('country_converter').setLevel(logging.ERROR)
+
+
 
 
 

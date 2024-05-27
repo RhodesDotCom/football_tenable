@@ -3,4 +3,3 @@ flask_caching
 sqlalchemy
 requests
 unidecode
-pycountry

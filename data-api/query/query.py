@@ -1,5 +1,5 @@
 import sqlalchemy
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker
 from flask import current_app
 
@@ -23,27 +23,51 @@ class Queries:
     def get_inputs(self, category='player'):
         for conn in self.get_conn():
 
-            column = sqlalchemy.column(category)
-            metadata = sqlalchemy.MetaData()
-            table = sqlalchemy.Table(
-                'player_stats',
-                metadata,
-                autoload_with=conn,
-                schema='stats_schema'
-            )
-            query = sqlalchemy.select(
-                column.distinct()
-            ).select_from(
-                table
-            ).order_by(column)
+            # column = sqlalchemy.column(category)
+            # metadata = sqlalchemy.MetaData()
+            # table = sqlalchemy.Table(
+            #     'player_stats',
+            #     metadata,
+            #     autoload_with=conn,
+            #     schema='stats_schema'
+            # )
+            # query = sqlalchemy.select(
+            #     column.distinct()
+            # ).select_from(
+            #     table
+            # ).order_by(column)
             
-            # sql= text('''select distinct :category
-            # FROM stats_schema.player_stats
-            # order by :category;''')
+            # # sql= text('''select distinct :category
+            # # FROM stats_schema.player_stats
+            # # order by :category;''')
+
+            inspector = inspect(conn)
+            columns = []
+            try:
+                columns += inspector.get_columns('player_stats', schema='stats_schema')
+                columns += inspector.get_columns('countries', schema='stats_schema')
+            except sqlalchemy.exc.NoSuchTableError as e:
+                print(f"Error: {e}")
+                raise
+
             
-            results = conn.execute(query)
-            current_app.logger.info('TEST')
-            return {category: [row[0] for row in results]}
+
+            columns = [c['name'] for c in columns]
+
+            if category not in columns:
+                current_app.logger.error('column not in table')
+                return None
+            else:
+
+                sql = text(f"""select distinct {category}
+                        from stats_schema.player_stats
+                        join stats_schema.countries 
+                        on nationality = country_code
+                        order by {category};""")
+
+                results = conn.execute(sql)
+
+                return {category: [row[0] for row in results]}
 
     def get_all_nations(self):
         for conn in self.get_conn():

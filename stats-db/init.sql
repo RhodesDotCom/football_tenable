@@ -30,14 +30,14 @@ BEGIN
     END IF;
 END $$;
 
-CREATE TABLE IF NOT EXISTS country_code_to_name (
+CREATE TABLE IF NOT EXISTS countries (
     country_code VARCHAR(3) NOT NULL,
-    country_name VARCHAR(255) NOT NULL
+    country VARCHAR(255) NOT NULL
 );
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM country_code_to_name LIMIT 1) THEN
-        COPY country_code_to_name FROM '/docker-entrypoint-initdb.d/csv_data/countries.csv' DELIMITER ',' CSV HEADER;
+    IF NOT EXISTS (SELECT 1 FROM countries LIMIT 1) THEN
+        COPY countries FROM '/docker-entrypoint-initdb.d/csv_data/countries.csv' DELIMITER ',' CSV HEADER;
     END IF;
 END $$;
 
