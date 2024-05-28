@@ -9,15 +9,11 @@ from tenable_ui.client import get_input_list
 def input_list(category):
     response = get_input_list(category)
     inputs = response.get(category, [])
-    current_app.logger.info(inputs)
 
     if not inputs:
         current_app.logger.error('No response from autocomplete list')
 
-    if category == 'player':
-        inputs = [p.split(' ', 1) for p in inputs if p]
-
-    return inputs
+    return [i.split(' ') for i in inputs if i]
 
 
 @game_bp.route('/autocomplete', methods=['GET'])
@@ -28,12 +24,23 @@ def autocomplete():
     if not query:
         return jsonify([])
     
-    players = input_list(category)
+    items = input_list(category)
+    
+    filtered_list = []
+    query_len = len(query.split(' '))
 
-    #FIX FOR COUNTRIES
-    filtered_list = [' '.join(p) for p in players if
-                     p[0].casefold().startswith(query) or
-                     (len(p) > 1 and p[1].casefold().startswith(query)) or
-                      ' '.join(p).casefold().startswith(query)]
-    current_app.logger.info(filtered_list)
+    for item in items:
+        item_len = len(item)
+        
+        if query_len > item_len:
+            continue
+        
+        i = 0
+        while i < item_len:
+            new_string = ' '.join(item[i:]).casefold()
+            if new_string.startswith(query):
+                filtered_list.append(' '.join(item))
+            i += 1
+
+
     return jsonify(filtered_list[:20])
