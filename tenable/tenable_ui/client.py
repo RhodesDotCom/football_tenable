@@ -17,12 +17,6 @@ def get_input_list(category='players'):
         current_app.logger.error(f'get_inputs return status code: {response.status_code}')
     
 
-def get_all_nations():
-    response = requests.get(f'{url}/get_all_nations')
-    if response.status_code == 200:
-        return response.json()
-
-
 def get_golden_boot_winners():
     response = requests.get(f'{url}/get_golden_boot_winners')
     if response.status_code == 200:

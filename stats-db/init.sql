@@ -51,12 +51,14 @@ CREATE OR REPLACE VIEW player_goals_by_season_ranked as
 	where season != '2023-2024' and goals is not null;
 
 CREATE OR REPLACE VIEW goals_by_country_ranked as 
-	select nationality, sum(goals) as total_goals
-	from player_stats ps
-	where season != '2023-2024'
-	group by nationality
-	having sum(goals) > 0
-	order by total_goals desc;
+    select country, sum(goals) as total_goals
+    from player_stats ps
+    join countries c 
+    on ps.nationality = c.country_code
+    where season != '2023-2024'
+    group by country
+    having sum(goals) > 0
+    order by total_goals desc;
 
 create view goals_and_assists as
     select player, season, goals, ast 

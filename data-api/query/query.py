@@ -23,24 +23,6 @@ class Queries:
     def get_inputs(self, category='player'):
         for conn in self.get_conn():
 
-            # column = sqlalchemy.column(category)
-            # metadata = sqlalchemy.MetaData()
-            # table = sqlalchemy.Table(
-            #     'player_stats',
-            #     metadata,
-            #     autoload_with=conn,
-            #     schema='stats_schema'
-            # )
-            # query = sqlalchemy.select(
-            #     column.distinct()
-            # ).select_from(
-            #     table
-            # ).order_by(column)
-            
-            # # sql= text('''select distinct :category
-            # # FROM stats_schema.player_stats
-            # # order by :category;''')
-
             inspector = inspect(conn)
             columns = []
             try:
@@ -48,9 +30,7 @@ class Queries:
                 columns += inspector.get_columns('countries', schema='stats_schema')
             except sqlalchemy.exc.NoSuchTableError as e:
                 print(f"Error: {e}")
-                raise
-
-            
+                raise           
 
             columns = [c['name'] for c in columns]
 
@@ -69,16 +49,6 @@ class Queries:
 
                 return {category: [row[0] for row in results]}
 
-    def get_all_nations(self):
-        for conn in self.get_conn():
-            
-            sql= '''select distinct nationality
-            FROM stats_schema.player_stats
-            order by nationality;'''
-            
-            results = conn.execute(text(sql))
-            
-            return {'nation': [row[0] for row in results]}
 
     def get_golden_boot_winners(self):
 
@@ -93,6 +63,7 @@ class Queries:
         
             return self.format_results(columns, results)
         
+
     def get_goals_and_assists(self, goals:int, assists:int):
             
         for conn in self.get_conn():
@@ -105,12 +76,13 @@ class Queries:
             columns = results.keys()
             current_app.logger.info(results)
             return self.format_results(columns, results)
-        
+
+      
     def get_goals_by_nation(self):
             
         for conn in self.get_conn():
 
-            sql = 'SELECT nationality, total_goals FROM stats_schema.goals_by_country_ranked;'
+            sql = 'SELECT country, total_goals FROM stats_schema.goals_by_country_ranked;'
 
             results = conn.execute(text(sql))
             columns = results.keys()

@@ -18,6 +18,6 @@ def ten_goals_and_assists_in_a_season():
 
 def total_goals_by_nation():
     response = q.get_goals_by_nation()
-    answers = [d['nationality'] for d in response[:10]]
+    answers = [d['country'] for d in response[:10]]
 
     return response, answers
