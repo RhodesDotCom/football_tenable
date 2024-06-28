@@ -6,6 +6,9 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 import warnings
+import selenium
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 warnings.filterwarnings(action='ignore', category=DeprecationWarning)
@@ -109,7 +112,7 @@ def get_players():
             print(f'error getting page {i}, status code: {r.status_code}')
             return players
     return players
-        
+
 
 def write_to_csv(output_csv, data):
     current_dir = os.path.dirname(os.path.abspath(__file__))
