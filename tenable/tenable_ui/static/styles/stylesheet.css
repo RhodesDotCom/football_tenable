@@ -141,7 +141,7 @@ body {
 }
 .category-title {
     height: 50px;
-    width: 20vw;
+    width: 440px;
     align-items: center;
 }
 .dropdown {
@@ -166,4 +166,5 @@ body {
 .game {
     margin: 5px;
     border: solid black 3px;
+    cursor: pointer;
 }

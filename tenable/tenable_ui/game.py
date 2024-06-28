@@ -2,7 +2,8 @@ from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
 
 from tenable_ui.routes import game_bp
-from tenable_ui.client import get_golden_boot_winners, get_all_players
+from tenable_ui.games_map import PL_games
+import tenable_ui.games as games
 
 
 def log(*args):
@@ -10,37 +11,46 @@ def log(*args):
         current_app.logger.info(a)
 
 
-@game_bp.before_request
-def initiate_session_variables():
-    # if not session.get('players'):
-    #     session['players'] = get_all_players().get('players', [])
+def initiate_session_variables(game_name=None):
+
+    info = PL_games.get(game_name, {})
+
     if not session.get('question'):
-        session['question'] = 'Premier League Golden Boot Winners'
+        session['question'] = game_name
+
+    if not session.get('category'):
+        session['category'] = info.get('category')
+
     if not session.get('response'):
-        response = get_golden_boot_winners()
+        func = info['func']
+        response, answers = func()
         session['response'] = response
-        session['correct_answers'] = [d['player'] for d in response]
+        session['correct_answers'] = answers
+
     if not session.get('lives'):
         session['lives'] = 3
+
     if not session.get('guesses'):
         session['guesses'] = []
+
     if not session.get('correct_guesses'):
         session['correct_guesses'] = []
+
     if not session.get('info'):
         session['info'] = []
         
 
-@game_bp.route('/game', methods=['GET', 'POST'])
-def game():
+@game_bp.route('/game/<game_name>', methods=['GET', 'POST'])
+def game(game_name):
 
     if request.method == 'GET':
         session.clear()
-        initiate_session_variables()
+        initiate_session_variables(game_name)
 
     if request.method == 'POST':
 
         guess = request.form.get('guess')
-        repeat, correct, answer = check_guess(guess)
+        repeat, correct, answer = _check_guess(guess)
 
         guesses = session.get('guesses', [])
         guesses.append(answer) if answer else guesses.append(guess.title())
@@ -51,21 +61,28 @@ def game():
             correct_guesses.append(answer)
             session['correct_guesses'] = correct_guesses
             
-            info = create_info(answer)
-            
+            if session.get('category') == 'player':
+                info = _create_info(answer)
+            else:
+                info = []
+        
+        # If answer incorrect and not previously guessed, decrease lives
         elif not repeat:
             lives = session.get('lives', 0)
             session['lives'] = lives-1
 
+    # When lives reach 0, game over
     if session.get('lives', 0) == 0:
         game_over = True
     else:
         game_over = False
 
+
     return render_template(
         'tenable_ui/game.html',
+        game_name=game_name,
         question=session.get('question'),
-        # players=session.get('players', []),
+        category=session.get('category', None),
         answers=session.get('correct_guesses', []),
         lives=session.get('lives', 3),
         info=info if 'info' in locals() else [],
@@ -89,7 +106,7 @@ def game_over():
     )
 
 
-def check_guess(guess):
+def _check_guess(guess):
 
     repeat = False
     correct = False
@@ -122,12 +139,11 @@ def check_guess(guess):
     return repeat, correct, answer
 
 
-def create_info(answer):
+##### CONSOLIDATE FUNCTIONS
+def _create_info(answer):
     answers = session.get('response', [])
     
     info = []
-
-    current_app.logger.info(answers)
 
     for dic in answers:
         if dic['player'] == answer:

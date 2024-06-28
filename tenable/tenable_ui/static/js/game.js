@@ -57,11 +57,15 @@ $(".answer").click(function() {
 $(function() {
     $('#guess').autocomplete({
         source: function(request, response) {
+
+            let category = $('#guess').data('category');
+
             $.ajax({
-                url: "/game/player_list",
+                url: "/game/autocomplete",
                 dataType: 'json',
                 data: {
-                    query: request.term
+                    query: request.term,
+                    category: category
                 },
                 success: function(data) {
                     response(data);

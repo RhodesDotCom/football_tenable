@@ -1,33 +1,46 @@
 from flask import request, jsonify, current_app
+
 from cache import cache
-
 from tenable_ui.routes import game_bp
-from tenable_ui.client import get_all_players
+from tenable_ui.client import get_input_list
 
 
-@cache.cached(600 ,key_prefix='player_list')
-def player_list():
-    response = get_all_players()
-    players = response.get('players', [])
+# @cache.cached(0 ,key_prefix='autocomplete')
+def input_list(category):
+    response = get_input_list(category)
+    inputs = response.get(category, [])
 
-    if not players:
-        current_app.logger.error('No response from player list')
+    if not inputs:
+        current_app.logger.error('No response from autocomplete list')
 
-    players_split = [p.split(' ', 1) for p in players]
-    return players_split
+    return [i.split(' ') for i in inputs if i]
 
 
-@game_bp.route('/player_list', methods=['GET'])
+@game_bp.route('/autocomplete', methods=['GET'])
 def autocomplete():
     query = request.args.get('query', '').casefold()
+    category = request.args.get('category', '')
 
     if not query:
         return jsonify([])
     
-    players = player_list()
-    filtered_list = [' '.join(p) for p in players if
-                     p[0].casefold().startswith(query) or
-                     (len(p) > 1 and p[1].casefold().startswith(query)) or
-                      ' '.join(p).casefold().startswith(query)]
+    items = input_list(category)
     
+    filtered_list = []
+    query_len = len(query.split(' '))
+
+    for item in items:
+        item_len = len(item)
+        
+        if query_len > item_len:
+            continue
+        
+        i = 0
+        while i < item_len:
+            new_string = ' '.join(item[i:]).casefold()
+            if new_string.startswith(query):
+                filtered_list.append(' '.join(item))
+            i += 1
+
+
     return jsonify(filtered_list[:20])

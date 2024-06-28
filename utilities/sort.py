@@ -122,9 +122,9 @@ def write_to_csv(output_csv, data):
         writer.writerows(data)
 
 
-headers = ['Player','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
+# headers = ['Player','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
 
-players = get_players()
-output_csv = '../stats-db/csv_data/players.csv'
+# players = get_players()
+# output_csv = '../stats-db/csv_data/players.csv'
 
-write_to_csv(output_csv, players)
+# write_to_csv(output_csv, players)
