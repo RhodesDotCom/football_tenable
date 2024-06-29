@@ -89,5 +89,24 @@ class Queries:
         
             return self.format_results(columns, results)
     
+
+    def get_team_topscorers_by_season(self):
+
+        for conn in self.get_conn():
+
+            sql = '''
+                select player, season, team, goals from (
+                    select player, season, team, goals, row_number () over (partition by season, team order by goals desc) as rn
+                    from player_stats ps
+                    where goals is not null
+                ) as foo 
+                where rn = 1
+            '''
+    
+    def get_team_total_goals():
+
+        sql = '''select team, sum(goals) as total_goals from player_stats ps group by team order by sum(goals) desc;'''
+
+
     
          

@@ -30,6 +30,13 @@ BEGIN
     END IF;
 END $$;
 
+
+DO $$
+BEGIN
+    DELETE FROM player_stats WHERE team = '2 Teams';
+    COPY player_stats FROM '/docker-entrypoint-initdb.d/csv_data/two_teams_fixes.csv' DELIMITER ',' CSV HEADER;
+END $$;
+
 CREATE TABLE IF NOT EXISTS countries (
     country_code VARCHAR(3) NOT NULL,
     country VARCHAR(255) NOT NULL
