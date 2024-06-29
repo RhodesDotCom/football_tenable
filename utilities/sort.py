@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import pandas as pd
 import subprocess
 from ftfy import fix_text
@@ -6,12 +7,13 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 import warnings
-import selenium
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
+
+from two_teams import split_2_team_rows, format_rows
 
 warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+
+load_dotenv()
 
 
 def install_package(package_name):
@@ -57,8 +59,10 @@ def combine_xls_to_csv(folder_path, output_csv):
 
 def login():
     login_url = 'https://stathead.com/users/login.cgi'
-    user = 'nathan.rhodes56@gmail.com'
-    pswd = 'wNJJ2IK9ri08'
+    user = os.getenv('STATHEAD_EMAIL')
+    pswd = os.getenv('STATHEAD_PSWD')
+
+    print(user)
 
     session = requests.Session()
     login_page = session.get(login_url)
@@ -76,15 +80,19 @@ def login():
 
     if login_response.status_code == 200:
         return session
+    else:
+        print(login_response)
 
 
 def get_players():
 
     session = login()
+    if not session:
+        SystemExit
 
     players = []
-    for i in range(0,18200,200):
-        print(f'{i}/18000', end='\r', flush=True)
+    for i in range(0,200,200):
+        # print(f'{i}/18000', end='\r', flush=True)
         r = session.get(f"https://stathead.com/fbref/player-season-finder.cgi?request=1&height_type=height_meters&force_min_year=1&comp_type=c-9&order_by=name_display_csk&match=player_season&per90_type=player&order_by_asc=1&comp_gender=m&phase_id=0&per90min_val=5&weight_type=kgs&offset={i}")
         if r.status_code == 200:
             soup = BeautifulSoup(r.content, 'html.parser')
@@ -93,9 +101,10 @@ def get_players():
             if table:
                 # Process the table data
                 rows = table.find_all('tr')
-                for row in rows:
+                for index, row in enumerate(rows):
+                    print(f'{i+index+1}/18000', end='\r', flush=True)
                     cols = row.find_all('td')
-                    cols = [col.text.strip() for col in cols]
+                    cols = [col.text.strip() for col in cols] 
                     if any(cols):
                         if cols[3]:
                             cols[3] = cols[3].split()[-1]
@@ -104,7 +113,15 @@ def get_players():
                         if cols[7]:
                             cols[7] = int(cols[7].replace(',',''))
 
-                        players.append(cols)
+                        # print(cols[4])
+                        if cols[4] == '2 Teams':
+                            new_cols = split_2_team_rows(cols[0], cols[1])
+                            new_cols = format_rows(cols, new_cols)
+                            players.extend(new_cols)
+                        else:
+                            players.append(cols)
+                        # print(players)
+                        
                 
             else:
                 print("Table with id 'stats' not found.")
@@ -127,7 +144,7 @@ def write_to_csv(output_csv, data):
 
 # headers = ['Player','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
 
-# players = get_players()
+players = get_players()
 # output_csv = '../stats-db/csv_data/players.csv'
-
-# write_to_csv(output_csv, players)
+output_csv = 'players.csv'
+write_to_csv(output_csv, players)
