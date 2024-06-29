@@ -4,6 +4,14 @@ import tenable_ui.games as games
 # Dict of available games
 # key: value --> name: api function
 
+
+daily_challenge = {
+    'placeholder': {
+
+    }
+}
+
+
 PL_games = {
     'Premier League Golden Boot Winners': {
         'func': games.golden_boot_winners,

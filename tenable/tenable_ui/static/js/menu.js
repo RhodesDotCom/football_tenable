@@ -1,6 +1,6 @@
 $("#daily").click( function() {
     window.location.href = "/game/game"
 })
-$("#others").click( function() {
-    window.location.href = "/game/others"
+$("#past").click( function() {
+    window.location.href = "/game/past_challenges"
 })

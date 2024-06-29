@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS player_stats (
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM player_stats LIMIT 1) THEN
-        COPY player_stats FROM '/docker-entrypoint-initdb.d/csv_data/players.csv' DELIMITER ',' CSV HEADER;
+        COPY player_stats FROM '/docker-entrypoint-initdb.d/csv_data/players_formatted_int.csv' DELIMITER ',' CSV HEADER;
     END IF;
 END $$;
 
@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS countries (
     country_code VARCHAR(3) NOT NULL,
     country VARCHAR(255) NOT NULL
 );
+
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM countries LIMIT 1) THEN
@@ -48,14 +49,13 @@ CREATE OR REPLACE VIEW player_goals_by_season_ranked as
 		goals,
 		ROW_NUMBER() OVER (PARTITION BY season ORDER BY goals DESC) AS rn
 	from player_stats ps
-	where season != '2023-2024' and goals is not null;
+	where goals is not null;
 
 CREATE OR REPLACE VIEW goals_by_country_ranked as 
     select country, sum(goals) as total_goals
     from player_stats ps
     join countries c 
     on ps.nationality = c.country_code
-    where season != '2023-2024'
     group by country
     having sum(goals) > 0
     order by total_goals desc;
