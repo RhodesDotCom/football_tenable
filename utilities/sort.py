@@ -54,8 +54,8 @@ def combine_xls_to_csv(folder_path, output_csv):
 
 def login():
     login_url = 'https://stathead.com/users/login.cgi'
-    user = 'nathan.rhodes56@gmail.com'
-    pswd = 'wNJJ2IK9ri08'
+    user = 'email'
+    pswd = 'password'
 
     session = requests.Session()
     login_page = session.get(login_url)
