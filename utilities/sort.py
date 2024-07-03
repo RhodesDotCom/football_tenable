@@ -16,8 +16,6 @@ warnings.filterwarnings(action='ignore', category=DeprecationWarning)
 load_dotenv()
 
 
-
-
 def login():
     login_url = 'https://stathead.com/users/login.cgi'
     user = os.getenv('STATHEAD_EMAIL')
@@ -142,7 +140,6 @@ def float_to_int(ply, tmp):
                 except ValueError:
                     row[14] = int(row[14].replace(',',''))
             writer.writerow(row)
-
 
 
 # headers = ['Player','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
