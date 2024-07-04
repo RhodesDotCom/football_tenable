@@ -10,6 +10,8 @@ import warnings
 import time
 import sys
 
+from two_teams import split_2_team_rows, init_driver
+
 # from two_teams import split_2_team_rows, format_rows
 
 warnings.filterwarnings(action='ignore', category=DeprecationWarning)
@@ -52,7 +54,7 @@ def get_players():
         sys.exit()
 
     players = []
-    for i in range(0,200,200):
+    for i in range(0,MAX_PAGE,200):
         print(f'{i}/{MAX_PAGE}', end='\r', flush=True)
         r = session.get(f"https://stathead.com/fbref/player-season-finder.cgi?request=1&height_type=height_meters&force_min_year=1&comp_type=c-9&order_by=name_display_csk&match=player_season&per90_type=player&order_by_asc=1&comp_gender=m&phase_id=0&per90min_val=5&weight_type=kgs&offset={i}")
         if r.status_code == 200:
@@ -81,15 +83,17 @@ def get_players():
     return players
 
 
-def write_to_csv(output_csv, data):
+def write_to_csv(output_csv, df):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     output_csv_path = os.path.join(current_dir, output_csv)
     if not os.path.exists(os.path.dirname(output_csv_path)):
         os.makedirs(os.path.dirname(output_csv_path))
 
-    with open(output_csv_path, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerows(data)
+    # with open(output_csv_path, mode='w', newline='', encoding='utf-8') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data)
+    
+    df.to_csv(output_csv_path, index=False, header=False)
 
 
 def float_to_int(ply, tmp):
@@ -158,7 +162,68 @@ def main():
     players = get_players()
     players = pd.DataFrame(players, columns=headers)
     col_format(players)
-    print(players.Min)
+    
+    csv_path = '../stats-db/csv_data/players_formatted.csv'
+    write_to_csv(csv_path, players)
 
 
-main()
+
+def remove_two_teams():
+
+    driver = init_driver()
+
+    path = '../stats-db/csv_data/players_formatted.csv'
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(current_dir, path)
+    df = pd.read_csv(csv_path)
+    total = len(df)
+
+    data = []
+    for i in range(0, 10):
+        print(f'{i}/{total}', end='\r', flush=True)
+
+        row = df.iloc[i].to_list()
+        try:
+            if '2 Teams' in row[5]:
+                new_rows = split_2_team_rows(driver, row[1], row[2])
+                new_rows = format_tt_rows(row, new_rows)
+                data.extend(new_rows)
+        except Exception as e:
+            print(e)
+            sys.exit()
+    
+    df_tt = pd.DataFrame(data)
+    tt_path = '../stats-db/csv_data/two_teams.csv'
+    write_to_csv(tt_path, df_tt)
+
+
+def format_tt_rows(original_row, new_rows):
+    print(original_row)
+    print(new_rows[0])
+
+    output = []
+    for row in new_rows:
+        formatted_row = original_row.copy()
+        formatted_row[5] = row[1] # team
+        formatted_row[7] = row[5]  # MP
+        formatted_row[8] = row[7] # Min
+        formatted_row[9] = row[8] # 90s
+        formatted_row[10] = row[6] # starts
+
+        formatted_row[11] = row[-2] # subs
+        formatted_row[12] = row[-1] # unsubs
+
+        formatted_row[13] = row[9]  # Gls
+        formatted_row[14] = row[10]  # Ast
+        formatted_row[15] = row[11]  # G+A
+        formatted_row[16] = row[12]  # G-PK
+        formatted_row[17] = row[13]  # PK
+        formatted_row[18] = row[14]  # PKatt
+        
+        output.append(formatted_row)
+    
+    return output
+        
+
+# main()
+remove_two_teams()

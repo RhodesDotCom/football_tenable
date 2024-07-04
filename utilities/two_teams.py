@@ -21,6 +21,7 @@ from unidecode import unidecode
 import os
 import csv
 import pandas as pd
+import re
 
 DRIVER_PATH = 'utilities/chromedriver-win64/chromedriver-win64/chromedriver.exe'
 FBREF = 'https://fbref.com/en/'
@@ -40,14 +41,6 @@ def init_driver():
 
 def split_2_team_rows(driver, player: str, year: str):
     
-    # options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')  # Run in headless mode
-    # options.add_argument("--log-level=3")
-    # options.add_argument('--disable-gpu')  # Disable GPU acceleration
-    # options.add_argument('--window-size=1920,1080')
-    # options.add_argument('--blink-settings=imagesEnabled=false')
-    # driver = webdriver.Chrome(options=options)
-
         try:
             driver.get(FBREF)
         except Exception as e:
@@ -91,20 +84,40 @@ def split_2_team_rows(driver, player: str, year: str):
 
         page_source = driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
-        table = soup.find('table', {'id': 'stats_standard_dom_lg'})
 
+        table = soup.find('table', {'id': 'stats_standard_dom_lg'})
+        player_data = []
         if table:
             tbody = table.find('tbody')
             rows = tbody.find_all('tr')
-            data = []
+            player_data = []
             for row in rows:
                 year_th = row.find('th')
                 if year_th and year_th.text.strip() == year:
                     cells = row.find_all('td')
                     a_tag = cells[3].find('a')
                     if a_tag and a_tag.text.strip() == 'Premier League':
-                        data.append([cell.text.strip() for cell in cells])
-            return data
+                        player_data.append([cell.text.strip() for cell in cells])
+        
+        table = soup.find('table', {'id': 'stats_playing_time_dom_lg'})
+        subs_data = []
+        if table:
+            tbody = table.find('tbody')
+            rows = tbody.find_all('tr')
+            for row in rows:
+                year_th = row.find('th')
+                if year_th and year_th.text.strip() == year:
+                    cells = row.find_all('td')
+                    a_tag = cells[3].find('a')
+                    if a_tag and a_tag.text.strip() == 'Premier League':
+                        #13 and 15
+                        subs_data.append([cell.text.strip() for cell in cells])
+        
+        if player_data and subs_data:
+            player_data[0].extend([subs_data[0][13], subs_data[0][15]])
+            player_data[1].extend([subs_data[1][13], subs_data[1][15]])
+
+            return player_data
         else:
             print('Table not found')
             sys.exit()
@@ -115,6 +128,10 @@ def format_rows(original, rows):
     # new = Season,Age,Squad,Country,Comp,LgRank,MP,Starts,Min,90s,Gls,Ast,G+A,G-PK,PK,PKatt,CrdY,CrdR,Gls,Ast,G+A,G-PK,G+A-PK,Matches
     # change = 3:2, 6:6, :7, 8, 
     # available_info = (TEAM, MP, Min, 90s, Starts, Subs-NA, unSub-NA, Gls, G+A, G-PK, PK, PKatt, PKm)
+    
+    # headers = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
+
+    
     try:
         new_rows = []
         for row in rows:
@@ -153,10 +170,11 @@ def format_rows(original, rows):
         print(rows)
   
 
-def replace_rows(players_csv, new_csv, errors_path, start):
+def replace_rows(players_csv, new_csv, errors_path, start=0):
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     players_csv_path = os.path.join(current_dir, players_csv)
+    
     players_formatted_csv_path = os.path.join(current_dir, new_csv)
     if not os.path.exists(os.path.dirname(players_formatted_csv_path)):
         os.makedirs(os.path.dirname(players_formatted_csv_path))
@@ -165,8 +183,6 @@ def replace_rows(players_csv, new_csv, errors_path, start):
     if not os.path.exists(os.path.dirname(errors_path)):
         os.makedirs(os.path.dirname(errors_path))
     
-
-
     df = pd.read_csv(players_csv_path)
     total = len(df)
 
@@ -174,6 +190,7 @@ def replace_rows(players_csv, new_csv, errors_path, start):
 
     formatted_rows = []
     errors = []
+    print('starting search for "2 Teams"')
     for i in range(start, total):
         print(f'{i}/{total}', end='\r', flush=True)
 
