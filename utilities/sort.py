@@ -20,6 +20,7 @@ load_dotenv()
 
 
 MAX_PAGE = 18200
+HEADERS = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
 
 
 def login():
@@ -157,56 +158,83 @@ def col_format(df):
     df.Min = df.Min.astype(int)
 
 
-def main():
+def main(getplayers=False, gettwoteams=False):
     headers = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
-    players = get_players()
-    players = pd.DataFrame(players, columns=headers)
-    col_format(players)
-    
     csv_path = '../stats-db/csv_data/players_formatted.csv'
-    write_to_csv(csv_path, players)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    if getplayers:
+        players = get_players()
+        players = pd.DataFrame(players, columns=headers)
+        col_format(players)
+        write_to_csv(csv_path, players)
+    else:
+        output_csv_path = os.path.join(current_dir, csv_path)
+        players = pd.read_csv(output_csv_path, names=headers)
+    
+    if gettwoteams:
+        indices, to_add = get_two_teams(df=players, headers=headers)
+        to_add = format_to_add(to_add)
+    else:
+        add_csv = '../stats-db/csv_data/two_teams.csv'
+        output_csv_path = os.path.join(current_dir, add_csv)
+        to_add = pd.read_csv(output_csv_path, names=headers)
+        indices = players[players['Team'] == '2 Teams'].index.tolist()
+
+    players.drop(indices, axis=0, inplace=True)
+    players = pd.concat([players, to_add], ignore_index=True).sort_values(by='player_id')
+    
+    players_csv = '../stats-db/csv_data/players.csv'
+    csv_path = os.path.join(current_dir, players_csv)
+    players.to_csv(csv_path, header=False)
 
 
-
-def remove_two_teams():
+def get_two_teams(df=None, headers=[]):
 
     driver = init_driver()
 
-    path = '../stats-db/csv_data/players_formatted.csv'
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, path)
-    df = pd.read_csv(csv_path)
-    total = len(df)
+    if df is None:
+        path = '../stats-db/csv_data/players_formatted.csv'
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(current_dir, path)
+        df = pd.read_csv(csv_path, names=HEADERS)
 
-    data = []
-    for i in range(0, 10):
-        print(f'{i}/{total}', end='\r', flush=True)
+    def process_row(row):
+        return format_tt_rows(row.tolist(), split_2_team_rows(driver, row['player_name'], row['Season']))
 
-        row = df.iloc[i].to_list()
-        try:
-            if '2 Teams' in row[5]:
-                new_rows = split_2_team_rows(driver, row[1], row[2])
-                new_rows = format_tt_rows(row, new_rows)
-                data.extend(new_rows)
-        except Exception as e:
-            print(e)
-            sys.exit()
+    data = df[df['Team'] == '2 Teams'].apply(process_row, axis=1).dropna().tolist()
+    data = [item for sublist in data for item in sublist]
+    indices = df[df['Team'] == '2 Teams'].index.tolist()
+
+    # total = len(df)
+    # for i in range(0, 10):
+    #     print(f'{i}/{total}', end='\r', flush=True)
+
+    #     row = df.iloc[i].to_list()
+    #     try:
+    #         if '2 Teams' in row[5]:
+    #             indices.append(i)
+    #             new_rows = split_2_team_rows(driver, row[1], row[2])
+    #             new_rows = format_tt_rows(row, new_rows)
+    #             data.extend(new_rows)
+    #     except Exception as e:
+    #         print(e)
+    #         sys.exit()
     
-    df_tt = pd.DataFrame(data)
+    df_tt = pd.DataFrame(data, columns=HEADERS)
     tt_path = '../stats-db/csv_data/two_teams.csv'
     write_to_csv(tt_path, df_tt)
+    
+    return indices, df_tt
 
 
 def format_tt_rows(original_row, new_rows):
-    print(original_row)
-    print(new_rows[0])
-
     output = []
     for row in new_rows:
         formatted_row = original_row.copy()
         formatted_row[5] = row[1] # team
         formatted_row[7] = row[5]  # MP
-        formatted_row[8] = row[7] # Min
+        formatted_row[8] = row[7].replace(',', '') # Min
         formatted_row[9] = row[8] # 90s
         formatted_row[10] = row[6] # starts
 
@@ -225,5 +253,24 @@ def format_tt_rows(original_row, new_rows):
     return output
         
 
-# main()
-remove_two_teams()
+def format_to_add(df):
+    return df.astype(
+        {
+            'MP': 'int64',
+            'Min': 'int64',
+            '90s': 'float64',
+            'Starts': 'int64',
+            'Subs': 'int64',
+            'unSub': 'float64',
+            'Gls': 'float64',
+            'Ast': 'float64',
+            'G+A': 'float64',
+            'G-PK': 'float64',
+            'PK': 'float64',
+            'PKatt': 'float64',
+            'PKm': 'float64',
+        }
+    )
+
+
+main(gettwoteams=True)
