@@ -68,13 +68,6 @@ def get_players():
 
                     cols_text = [col.text.strip() for col in cols] 
                     if any(cols_text):
-                        if cols_text[3]:
-                            cols_text[3] = cols_text[3].split()[-1]
-                        if cols_text[5]:
-                            cols_text[5] = ' '.join(cols_text[5].split()[1:])
-                        if cols_text[7]:
-                            cols_text[7] = int(cols_text[7].replace(',',''))
-
                         player_id = cols[0].get('data-append-csv')
                         cols_text.insert(0, player_id)
                         players.append(cols_text)
@@ -144,17 +137,28 @@ def float_to_int(ply, tmp):
             writer.writerow(row)
 
 
+def col_format(df):
+    unique_values = df.player_id.unique()
+    value_to_int = {val: idx+1 for idx, val in enumerate(unique_values)}
+    df.player_id = df.player_id.map(value_to_int)
 
-# headers = ['Player','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
+    #split nation
+    df.Nation = df.Nation.str.split().str[1]
+    
+    #split competition
+    df.Comp = df.Comp.str.split().str[1:].str.join(' ')
 
-# players = get_players()
-# output_csv = '../stats-db/csv_data/players.csv'
-# # output_csv = 'players.csv'
-# write_to_csv(output_csv, players)
+    #int minutes
+    df.Min = df.Min.str.replace(',','').replace('', 0)
+    df.Min = df.Min.astype(int)
 
 
-# infile = '../stats-db/csv_data/players_formatted.csv'
-# outfile = '../stats-db/csv_data/players_formatted_int.csv'
-# float_to_int(infile, outfile)
-players = get_players()
-print(players)
+def main():
+    headers = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
+    players = get_players()
+    players = pd.DataFrame(players, columns=headers)
+    col_format(players)
+    print(players.Min)
+
+
+main()
