@@ -2,7 +2,7 @@ import os
 import psycopg2
 import time
 import pandas as pd
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 
 
 # DB_USER = os.environ.get('POSTGRES_USER')
@@ -10,6 +10,14 @@ from sqlalchemy import create_engine, inspect
 # DB_NAME = os.environ.get('POSTGRES_DB')
 # DB_HOST = os.environ.get('POSTGRES_HOST')
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://stats_user:stats_password@postgres:5432/stats_db'
+SCHEMA = "stats_schema"
+
+
+TABLE_HEADERS = {
+    "countries": ['country_code', 'country'],
+    "players": ['player_id', 'player_name','nationality'],
+    "player_stats": ['player_id','season','age','team','competition','mp','min','90s','starts','subs','unsub','goals','assists','G+A','non_penalty_goals','penalties','penalties_attempted','penalties_missed','position'],
+}
 
 
 def wait_for_db():
@@ -25,54 +33,53 @@ def wait_for_db():
             time.sleep(1)
 
 
-def check_table(engine, table_name):
-    while True:
+def check_table_exists(engine, table_name, check_columns=False):
+    for i in range(10):
         print(f"Checking {table_name} exists in schema...")
         inspector = inspect(engine)
-        if table_name in inspector.get_table_names(schema='stats_schema'):
+        if table_name in inspector.get_table_names(schema=SCHEMA):
             print(f'{table_name} found, continuing...')
-            columns = inspector.get_columns(table_name=table_name, schema='stats_schema')
-            print(f"Columns in {table_name}: {[col['name'] for col in columns]}")
-            break
+            if check_columns:
+                columns = inspector.get_columns(table_name=table_name, schema=SCHEMA)
+                print(f"Columns in {table_name}: {[col['name'] for col in columns]}")
+            return True
         else:
             print(f'Could not find {table_name}, retrying...')
             time.sleep(1)
-            
+    else:
+        print(f"{table_name} could not be established")
+        return False
+
+
+def check_table_is_empty(engine, table_name):
+    with engine.connect() as conn:
+        result = conn.execute(text(f'SELECT COUNT(*) FROM {SCHEMA}.{table_name}'))
+        count = result.scalar()
+        return not bool(count)
+    
+
+def build_tables():
+    try:
+        print('Creating engine')
+        engine = create_engine(SQLALCHEMY_DATABASE_URI)
+        print('Engine created successfully')
+    except Exception as e:
+        print(f"Error creating engine: ({e})")
+
+    tables = ['countries', 'players', 'player_stats']
+
+    for table in tables:
+        if check_table_exists(engine, table) and check_table_is_empty(engine, table):
+            print(f'loading data to {table}...')
+            df = pd.read_csv(f'data/{table}.csv', names=TABLE_HEADERS[table])
+            try:
+                df.to_sql(table, engine, schema=SCHEMA, if_exists='append', index=False)
+            except Exception as e:
+                print(f'Error inserting into {table} table: {e}')
+        else:
+            print(f'skipping {table}...')
+    print('all table data loaded')
+
 
 wait_for_db()
-try:
-    print('Creating engine')
-    engine = create_engine(SQLALCHEMY_DATABASE_URI)
-    print('Engine created successfully')
-except Exception as e:
-    print(f"Error creating engine: ({e})")
-
-# LOAD countries TABLE
-countries_header = ['country_code', 'country']
-countries = pd.read_csv('data/countries.csv', names=countries_header)
-check_table(engine, 'countries')
-try:
-    countries.to_sql('countries', engine, schema='stats_schema', if_exists='replace', index=False)
-except Exception as e:
-    print(f'Error inserting into countries table: {e}')
-
-# LOAD PLAYERS TABLE
-players_header = ['player_id', 'player_name','nationality']
-players = pd.read_csv('data/players.csv', names=players_header)
-check_table(engine, 'players')
-try:
-    players.to_sql('players', engine, schema='stats_schema', if_exists='replace', index=False, method='multi')
-except Exception as e:
-    print(f'Error inserting into players table: {e}')
-
-
-# LOAD PLAYERS_STATS TABLE
-player_stats_headers = ['player_id','season','age','team','competition','MP','Min','90s','starts','subs','unsub','gls','ast','G+A','G-PK','PK','PKatt','PKm','pos']
-player_stats = pd.read_csv('data/player_stats.csv', names=player_stats_headers)
-check_table(engine, 'player_stats')
-try:
-    player_stats.to_sql('player_stats', engine, schema='stats_schema', if_exists='replace', index=False)
-except Exception as e:
-    print(f'Error inserting into player_stats table: {e}')
-
-
+build_tables()
