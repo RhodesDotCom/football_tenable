@@ -1,4 +1,5 @@
 __pycache__/
 utilities/.venv
+utilities/.env
 todo.txt
 games.txt
