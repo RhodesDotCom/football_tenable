@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS player_stats (
     penalties_missed FLOAT,
     position VARCHAR(255)
 );
+create index idx_player_stats_player_id
+on player_stats(player_id);
 
 CREATE TABLE IF NOT EXISTS countries (
     country_code VARCHAR(3) NOT NULL,

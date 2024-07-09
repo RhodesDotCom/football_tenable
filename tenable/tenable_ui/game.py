@@ -146,7 +146,7 @@ def _create_info(answer):
     info = []
 
     for dic in answers:
-        if dic['player'] == answer:
+        if dic['player_name'] == answer:
             info.append({'season': dic['season'], 'goals': dic['goals']})
 
     return info
@@ -157,6 +157,6 @@ def get_info(player):
     info = []
     answers = session.get('response', [])
     for dic in answers:
-        if dic['player'] == player:
+        if dic['player_name'] == player:
             info.append({'season': dic['season'], 'goals': dic['goals']})
     return jsonify(info)

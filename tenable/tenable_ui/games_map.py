@@ -28,6 +28,9 @@ PL_games = {
         'category': 'country',
         'desc': 'Can you guess which counties have the most premier league goals by players from their country',
         },
-    'Youngest Premier League Goalscorers': {},
-    'Most Premier League Goals by Team': {},
+    # 'Youngest Premier League Goalscorers': {}, # dont have age at time of goal, nor do i have age as yrs + days
+    'Most Premier League Goals by Team': {
+        'func': games.total_goals_by_team,
+        'category': 'team'
+    },
 }

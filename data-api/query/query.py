@@ -92,9 +92,7 @@ class Queries:
     
 
     def get_team_topscorers_by_season(self):
-
         for conn in self.get_conn():
-
             sql = '''
                 select player_name, season, team, goals
                 from (
@@ -111,10 +109,20 @@ class Queries:
                 ) as foo 
                 where rn = 1
             '''
-    
-    def get_team_total_goals():
+            results = conn.execute(text(sql))
+            columns = results.keys()
 
-        sql = '''select team, sum(goals) as total_goals from player_stats ps group by team order by sum(goals) desc;'''
+            return self.format_results(columns, results)
+
+
+    def get_team_total_goals(self):
+        for conn in self.get_conn():
+            sql = '''select team, sum(goals) as total_goals from player_stats ps group by team order by sum(goals) desc;'''
+
+            results = conn.execute(text(sql))
+            columns = results.keys()
+
+            return self.format_results(columns, results)
 
 
     
