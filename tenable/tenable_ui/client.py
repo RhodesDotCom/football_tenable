@@ -8,7 +8,7 @@ config = Config()
 url = config.DATA_API_URL
 
 
-def get_input_list(category='players'):
+def get_input_list(category='player_names'):
     params = {'category': category}
     response = requests.get(f'{url}/get_inputs', params=params)
     if response.status_code == 200:

@@ -20,7 +20,7 @@ class Queries:
             return [(dict(zip(columns, row))) for row in rows]
 
 
-    def get_inputs(self, category='player'):
+    def get_inputs(self, category='player_name'):
         for conn in self.get_conn():
 
             inspector = inspect(conn)
@@ -28,6 +28,7 @@ class Queries:
             try:
                 columns += inspector.get_columns('player_stats', schema='stats_schema')
                 columns += inspector.get_columns('countries', schema='stats_schema')
+                columns += inspector.get_columns('players', schema='stats_schema')
             except sqlalchemy.exc.NoSuchTableError as e:
                 print(f"Error: {e}")
                 raise           
@@ -40,9 +41,11 @@ class Queries:
             else:
 
                 sql = text(f"""select distinct {category}
-                        from stats_schema.player_stats
-                        join stats_schema.countries 
-                        on nationality = country_code
+                        from stats_schema.player_stats ps
+                        join stats_schema.players p
+                        on p.player_id = ps.player_id
+                        join stats_schema.countries c
+                        on p.nationality = c.country_code
                         order by {category};""")
 
                 results = conn.execute(sql)
@@ -51,10 +54,9 @@ class Queries:
 
 
     def get_golden_boot_winners(self):
-
         for conn in self.get_conn():
 
-            sql = '''SELECT player, season, goals
+            sql = '''SELECT player_name, season, goals
             FROM stats_schema.player_goals_by_season_ranked
             WHERE rn = 1;'''
 
@@ -64,11 +66,10 @@ class Queries:
             return self.format_results(columns, results)
         
 
-    def get_goals_and_assists(self, goals:int, assists:int):
-            
+    def get_goals_and_assists(self, goals:int, assists:int):   
         for conn in self.get_conn():
 
-            sql = text('''SELECT player, season, goals, ast
+            sql = text('''SELECT player_name, season, goals, ast
             FROM stats_schema.goals_and_assists
             WHERE goals >= :goals and ast >= :assists;''')
 
@@ -95,9 +96,17 @@ class Queries:
         for conn in self.get_conn():
 
             sql = '''
-                select player, season, team, goals from (
-                    select player, season, team, goals, row_number () over (partition by season, team order by goals desc) as rn
+                select player_name, season, team, goals
+                from (
+                    select 
+                        player_name
+                        , season
+                        , team
+                        , goals
+                        , row_number () over (partition by season, team order by goals desc) as rn
                     from player_stats ps
+                    join players p
+                    on p.player_id = ps.player_id
                     where goals is not null
                 ) as foo 
                 where rn = 1
