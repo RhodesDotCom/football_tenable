@@ -154,9 +154,14 @@ def _create_info(answer):
 
 @game_bp.route('/get_info/<player>', methods=['GET'])
 def get_info(player):
+    category = session.get('category')
+    # use games_map key category
     info = []
     answers = session.get('response', [])
     for dic in answers:
-        if dic['player_name'] == player:
-            info.append({'season': dic['season'], 'goals': dic['goals']})
+        if dic[category] == player:
+            new_dic = dic.copy()
+            new_dic.pop(category)
+            current_app.logger.info(new_dic)
+            info.append(new_dic)
     return jsonify(info)

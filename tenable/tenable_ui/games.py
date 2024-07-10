@@ -1,4 +1,5 @@
 import tenable_ui.client as q
+from flask import current_app
 
 
 def golden_boot_winners():

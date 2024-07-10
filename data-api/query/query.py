@@ -69,9 +69,9 @@ class Queries:
     def get_goals_and_assists(self, goals:int, assists:int):   
         for conn in self.get_conn():
 
-            sql = text('''SELECT player_name, season, goals, ast
+            sql = text('''SELECT player_name, season, goals, assists
             FROM stats_schema.goals_and_assists
-            WHERE goals >= :goals and ast >= :assists;''')
+            WHERE goals >= :goals and assists >= :assists;''')
 
             results = conn.execute(sql, {'goals': goals, 'assists': assists})
             columns = results.keys()
