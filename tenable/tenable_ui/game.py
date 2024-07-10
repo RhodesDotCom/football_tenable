@@ -6,11 +6,6 @@ from tenable_ui.games_map import PL_games
 import tenable_ui.games as games
 
 
-def log(*args):
-    for a in args:
-        current_app.logger.info(a)
-
-
 def initiate_session_variables(game_name=None):
 
     info = PL_games.get(game_name, {})
@@ -61,10 +56,7 @@ def game(game_name):
             correct_guesses.append(answer)
             session['correct_guesses'] = correct_guesses
             
-            if session.get('category') == 'player':
-                info = _create_info(answer)
-            else:
-                info = []
+            info = get_info(answer)
         
         # If answer incorrect and not previously guessed, decrease lives
         elif not repeat:
@@ -139,19 +131,6 @@ def _check_guess(guess):
     return repeat, correct, answer
 
 
-##### CONSOLIDATE FUNCTIONS
-def _create_info(answer):
-    answers = session.get('response', [])
-    
-    info = []
-
-    for dic in answers:
-        if dic['player_name'] == answer:
-            info.append({'season': dic['season'], 'goals': dic['goals']})
-
-    return info
-
-
 @game_bp.route('/get_info/<player>', methods=['GET'])
 def get_info(player):
     category = session.get('category')
@@ -164,4 +143,8 @@ def get_info(player):
             new_dic.pop(category)
             current_app.logger.info(new_dic)
             info.append(new_dic)
-    return jsonify(info)
+
+    if request.method == 'GET':
+        return jsonify(info)
+    else:
+        return info

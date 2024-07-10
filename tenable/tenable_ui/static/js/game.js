@@ -38,8 +38,6 @@ function display_info(player, data) {
                 $tr.append($td);
             });
             $table.append($tr);
-
-            // $table.append('<tr><td>' + row['season'] + '</td><td>' + row['goals'] + '</td></tr>');
         });
         $infoDiv.append($table);
         
