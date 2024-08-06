@@ -4,7 +4,7 @@ from tenable_ui.games_map import PL_games
 from tenable_ui.routes import game_bp
 
 
-@game_bp.route('/others', methods=['GET'])
+@game_bp.route('/past_challenges', methods=['GET'])
 def menu():
 
     return render_template(

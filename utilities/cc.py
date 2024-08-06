@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from pprint import pprint as pp
 
-from sort import write_to_csv
+from utilities.players import write_to_csv
 
 
 def get_country_codes():
