@@ -1,36 +1,81 @@
-import tenable_ui.games as games
+from flask import current_app
+from datetime import datetime, timezone
+import json
+import random
 
+import tenable_ui.games as games
 
 # Dict of available games
 # key: value --> name: api function
 
+# 'Game Name': {
+#     'category': 'column_name_of_answers',
+#     'desc': '',
+#     'difficulty': 1-5,
+#     'func': games.function,
+#     'league': 'football league',
+#     }
 
-daily_challenge = {
-    'placeholder': {
 
-    }
-}
+def get_daily_challenge():
+    try:
+        with open('tenable_ui/past_challenges.json', 'r') as f:
+            past_challenges = json.load(f)
+        
+        current_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        if current_date in past_challenges:
+            todays_challenge = past_challenges[current_date]
+        else:
+            todays_challenge = random.choice(list(challenges.keys()))
+            past_challenges[current_date] = todays_challenge
+            with open('tenable_ui/past_challenges.json', 'w') as f:
+                json.dump(past_challenges, f)
+        return todays_challenge
+    except Exception as e:
+        current_app.logger.error(f"Error getting daily challenge: {e}")
 
 
-PL_games = {
+challenges = {
     'Premier League Golden Boot Winners': {
-        'func': games.golden_boot_winners,
         'category': 'player_name',
         'desc': '',
+        'difficulty': 2,
+        'func': games.golden_boot_winners,
+        'league': 'Premier League',
         },
     'Over 10 Goals and Assists in a Season': {
-        'func': games.ten_goals_and_assists_in_a_season,
         'category': 'player_name',
         'desc': '',
+        'difficulty': 3,
+        'func': games.ten_goals_and_assists_in_a_season,
+        'league': 'Premier League',
         },
     'Top 10 Most Goals by Country': {
-        'func': games.total_goals_by_nation,
         'category': 'country',
-        'desc': 'Can you guess which counties have the most premier league goals by players from their country',
+        'desc': 'Can you guess which counties have the most premier league goals by players from their country?',
+        'difficulty': 3,
+        'func': games.total_goals_by_nation,
+        'league': 'Premier League',
         },
-    # 'Youngest Premier League Goalscorers': {}, # dont have age at time of goal, nor do i have age as yrs + days
     'Most Premier League Goals by Team': {
+        'category': 'team',
+        'desc': 'Can you guess which team has the most Premier League goals?',
+        'difficulty': 1,
         'func': games.total_goals_by_team,
-        'category': 'team'
+        'league': 'Premier League',
+    },
+    'Team Top Goalscorer Each Season': {
+        'category': 'player_name',
+        'desc': 'Can you guess which player finished the season as their teams highest goalscorer?',
+        'difficulty': 1,
+        'func': games.team_topscorers_by_season,
+        'league': 'Premier League',
+    },
+    'Team''s Top Goalscorer Each Season But Not The Golden Boot': {
+        'category': 'player_name',
+        'desc': 'Can you guess which player finished the season as their teams highest goalscore but didn''t win the Golden Boot?',
+        'difficulty': 2,
+        'func': games.team_topscorers_without_golden_boot,
+        'league': 'Premier League',
     },
 }

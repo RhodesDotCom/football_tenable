@@ -2,13 +2,13 @@ from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
 
 from tenable_ui.routes import game_bp
-from tenable_ui.games_map import PL_games
+from tenable_ui.games_map import challenges
 import tenable_ui.games as games
 
 
 def initiate_session_variables(game_name=None):
 
-    info = PL_games.get(game_name, {})
+    info = challenges.get(game_name, {})
 
     if not session.get('question'):
         session['question'] = game_name
@@ -37,7 +37,7 @@ def initiate_session_variables(game_name=None):
 
 @game_bp.route('/game/<game_name>', methods=['GET', 'POST'])
 def game(game_name):
-
+    current_app.logger.info(game_name)
     if request.method == 'GET':
         session.clear()
         initiate_session_variables(game_name)

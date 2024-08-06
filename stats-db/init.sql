@@ -67,3 +67,19 @@ create view goals_and_assists as
     join stats_schema.players p
     on p.player_id = ps.player_id 
     order by player_name, season;
+
+CREATE OR REPLACE VIEW team_top_scorers_by_season as
+	select player_name, season, team, goals
+	from (
+	    select 
+	        player_name
+	        , season
+	        , team
+	        , goals
+	        , dense_rank () over (partition by season, team order by goals desc) as rn
+	    from player_stats ps
+	    join players p
+	    on p.player_id = ps.player_id
+	    where goals is not null
+	) as foo 
+	where rn = 1;

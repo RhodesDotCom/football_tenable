@@ -93,22 +93,24 @@ class Queries:
 
     def get_team_topscorers_by_season(self):
         for conn in self.get_conn():
-            sql = '''
-                select player_name, season, team, goals
-                from (
-                    select 
-                        player_name
-                        , season
-                        , team
-                        , goals
-                        , row_number () over (partition by season, team order by goals desc) as rn
-                    from player_stats ps
-                    join players p
-                    on p.player_id = ps.player_id
-                    where goals is not null
-                ) as foo 
+            sql = '''select player_name, season, team, goals
+                from stats_schema.team_top_scorers_by_season ttsbs 
+                where rn = 1;'''
+            results = conn.execute(text(sql))
+            columns = results.keys()
+
+            return self.format_results(columns, results)
+        
+    
+    def get_team_topscorers_without_golden_boot(self):
+        for conn in self.get_conn():
+            sql = '''select player_name, season, team, goals
+                from stats_schema.team_top_scorers_by_season ttsbs 
                 where rn = 1
-            '''
+                and (player_name, season) not in (
+                select player_name, season
+                from stats_schema.player_goals_by_season_ranked pgbsr
+                where rn = 1);'''
             results = conn.execute(text(sql))
             columns = results.keys()
 
@@ -117,7 +119,10 @@ class Queries:
 
     def get_team_total_goals(self):
         for conn in self.get_conn():
-            sql = '''select team, sum(goals) as total_goals from player_stats ps group by team order by sum(goals) desc;'''
+            sql = '''select team, sum(goals) as total_goals 
+                from stats_schema.player_stats ps 
+                group by team 
+                order by sum(goals) desc;'''
 
             results = conn.execute(text(sql))
             columns = results.keys()
