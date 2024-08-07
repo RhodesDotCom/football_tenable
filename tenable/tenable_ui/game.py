@@ -6,79 +6,76 @@ from tenable_ui.games_map import challenges
 import tenable_ui.games as games
 
 
-def initiate_session_variables(game_name=None):
+def _build_session(game_info: dict):
+    
+    func = game_info.get('func')
+    response, answers = func()
 
-    info = challenges.get(game_name, {})
+    session.clear()
 
-    if not session.get('question'):
-        session['question'] = game_name
+    session['response'] = response
+    session['correct_answers'] = answers
+    session['question'] = game_info.get('name')
+    session['category'] = game_info.get('category')
+    session['lives'] = 3
+    session['previous_guesses'] = list()
+    session['correct_guesses'] = list()
+    session['info'] = list()
 
-    if not session.get('category'):
-        session['category'] = info.get('category')
 
-    if not session.get('response'):
-        func = info['func']
-        response, answers = func()
-        session['response'] = response
-        session['correct_answers'] = answers
+def game_start(game_info: dict, origin: str):
 
-    if not session.get('lives'):
-        session['lives'] = 3
+    _build_session(game_info)
 
-    if not session.get('guesses'):
-        session['guesses'] = []
+    return render_template(
+        'tenable_ui/game.html',
+        origin=origin,
+        question=session.get('question'),
+        category=session.get('category'),
+        answers=session.get('correct_guesses', []),
+        lives=session.get('lives', 3),
+        info=[],
+        game_over=False
+    )
 
-    if not session.get('correct_guesses'):
-        session['correct_guesses'] = []
 
-    if not session.get('info'):
-        session['info'] = []
+def game_guess(guess, origin: str):
+    
+    repeat, correct, answer = _check_guess(guess)
+
+    previous_guesses = session.get('previous_guesses', [])
+    previous_guesses.append(answer) if answer else previous_guesses.append(guess.title())
+    session['previous_guesses'] = previous_guesses
+    
+    info = []
+    if correct and answer:
+        correct_guesses = session.get('correct_guesses', [])
+        correct_guesses.append(answer)
+        session['correct_guesses'] = correct_guesses
         
-
-@game_bp.route('/game/<game_name>', methods=['GET', 'POST'])
-def game(game_name):
-    current_app.logger.info(game_name)
-    if request.method == 'GET':
-        session.clear()
-        initiate_session_variables(game_name)
-
-    if request.method == 'POST':
-
-        guess = request.form.get('guess')
-        repeat, correct, answer = _check_guess(guess)
-
-        guesses = session.get('guesses', [])
-        guesses.append(answer) if answer else guesses.append(guess.title())
-        session['guesses'] = guesses
-        
-        if correct and answer:
-            correct_guesses = session.get('correct_guesses', [])
-            correct_guesses.append(answer)
-            session['correct_guesses'] = correct_guesses
-            
-            info = get_info(answer)
-        
-        # If answer incorrect and not previously guessed, decrease lives
-        elif not repeat:
-            lives = session.get('lives', 0)
-            session['lives'] = lives-1
+        info = get_info(answer)
+    
+    # If answer incorrect and not previously guessed, decrease lives
+    elif not repeat:
+        lives = session.get('lives', 0)
+        session['lives'] = lives-1
 
     # When lives reach 0, game over
     if session.get('lives', 0) == 0:
-        game_over = True
+        is_game_over = True
     else:
-        game_over = False
+        is_game_over = False
 
 
     return render_template(
         'tenable_ui/game.html',
-        game_name=game_name,
+        origin=origin,
         question=session.get('question'),
-        category=session.get('category', None),
+        category=session.get('category'),
         answers=session.get('correct_guesses', []),
-        lives=session.get('lives', 3),
-        info=info if 'info' in locals() else [],
-        game_over=game_over
+        lives=session.get('lives'),
+        info=info,
+        game_over=is_game_over
     )
 
 
@@ -96,6 +93,25 @@ def game_over():
         lives=0,
         game_over=False
     )
+
+
+@game_bp.route('/get_info/<player>', methods=['GET'])
+def get_info(player):
+    category = session.get('category')
+    # use games_map key category
+    info = []
+    answers = session.get('response', [])
+    for dic in answers:
+        if dic[category] == player:
+            new_dic = dic.copy()
+            new_dic.pop(category)
+            current_app.logger.info(new_dic)
+            info.append(new_dic)
+
+    if request.method == 'GET':
+        return jsonify(info)
+    else:
+        return info
 
 
 def _check_guess(guess):
@@ -129,22 +145,3 @@ def _check_guess(guess):
                     break
 
     return repeat, correct, answer
-
-
-@game_bp.route('/get_info/<player>', methods=['GET'])
-def get_info(player):
-    category = session.get('category')
-    # use games_map key category
-    info = []
-    answers = session.get('response', [])
-    for dic in answers:
-        if dic[category] == player:
-            new_dic = dic.copy()
-            new_dic.pop(category)
-            current_app.logger.info(new_dic)
-            info.append(new_dic)
-
-    if request.method == 'GET':
-        return jsonify(info)
-    else:
-        return info
