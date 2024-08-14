@@ -5,5 +5,5 @@ $(".dropdown, .menu-buttons").click(function() {
 
 $(".game").click(function() {
     let title = $(this).text()
-    window.location.href = "/game/game/" + title
+    window.location.href = "/game/past_challenges/" + title
 })

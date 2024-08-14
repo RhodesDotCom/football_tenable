@@ -79,7 +79,7 @@ def get_info(answer: str) -> list:
         return info
 
 
-def _build_session(game_info: dict):
+def _build_session(game_info: dict) -> None:
     current_app.logger.info('Changing session variables for new game...')
     try:
         func = game_info.get('func')
@@ -114,7 +114,7 @@ def _check_guess(guess: str) -> tuple[bool, bool, str]:
     return repeat, correct, answer
 
 
-def _update_session(key: str, new_value: str):
+def _update_session(key: str, new_value: str) -> None:
     update = session.get(key)
     if update is not None:
         update.append(new_value)

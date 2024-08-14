@@ -66,3 +66,24 @@ def past_challenges():
         premier_league=premier_league
     )
 
+
+@game_bp.route('/past_challenges/<game_name>', methods=['GET', 'POST'])
+def play_game(game_name):
+    try:
+
+        origin = url_for(f'game_bp.play_game', game_name=game_name)
+
+        if request.method == 'GET':
+            game_info=challenges.get(game_name, None)
+        else:
+            game_info = None
+
+        if request.method == 'POST':
+            guess = request.form.get('guess')
+        else:
+            guess = None
+
+        return build_game(origin=origin, game_info=game_info, guess=guess)
+
+    except Exception as e:
+        current_app.logger.error(f'Error displaying daily challenge: {e}, [{traceback.format_exc()}]')    
