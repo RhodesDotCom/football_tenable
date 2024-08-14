@@ -94,8 +94,7 @@ class Queries:
     def get_team_topscorers_by_season(self):
         for conn in self.get_conn():
             sql = '''select player_name, season, team, goals
-                from stats_schema.team_top_scorers_by_season ttsbs 
-                where rn = 1;'''
+                from stats_schema.team_top_scorers_by_season ttsbs;'''
             results = conn.execute(text(sql))
             columns = results.keys()
 
@@ -106,7 +105,8 @@ class Queries:
         for conn in self.get_conn():
             sql = '''select player_name, season, team, goals
                 from stats_schema.team_top_scorers_by_season ttsbs 
-                where rn = 1
+                where 1=1
+                and rn=1 
                 and (player_name, season) not in (
                 select player_name, season
                 from stats_schema.player_goals_by_season_ranked pgbsr

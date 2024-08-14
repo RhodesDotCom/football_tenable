@@ -25,7 +25,7 @@ warnings.filterwarnings(action='ignore', category=DeprecationWarning)
 load_dotenv()
 
 
-MAX_PAGE = 18200
+MAX_PAGE = 18200 #91250 for top 5
 HEADERS = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
 FBREF = 'https://fbref.com/en/'
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
