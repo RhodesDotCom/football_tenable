@@ -1,99 +1,54 @@
 from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
+import traceback
 
 from tenable_ui.routes import game_bp
-from tenable_ui.games_map import PL_games
 import tenable_ui.games as games
 
 
-def log(*args):
-    for a in args:
-        current_app.logger.info(a)
+def build_game(origin: str, game_info: dict = {}, guess: str = None):
 
-
-def initiate_session_variables(game_name=None):
-
-    info = PL_games.get(game_name, {})
-
-    if not session.get('question'):
-        session['question'] = game_name
-
-    if not session.get('category'):
-        session['category'] = info.get('category')
-
-    if not session.get('response'):
-        func = info['func']
-        response, answers = func()
-        session['response'] = response
-        session['correct_answers'] = answers
-
-    if not session.get('lives'):
-        session['lives'] = 3
-
-    if not session.get('guesses'):
-        session['guesses'] = []
-
-    if not session.get('correct_guesses'):
-        session['correct_guesses'] = []
-
-    if not session.get('info'):
-        session['info'] = []
-        
-
-@game_bp.route('/game/<game_name>', methods=['GET', 'POST'])
-def game(game_name):
-
-    if request.method == 'GET':
-        session.clear()
-        initiate_session_variables(game_name)
-
-    if request.method == 'POST':
-
-        guess = request.form.get('guess')
+    if game_info:
+        _build_session(game_info)
+    
+    info = []
+    if guess:
+        guess = guess.casefold()
         repeat, correct, answer = _check_guess(guess)
+        _update_session('previous_guess', guess.title())
 
-        guesses = session.get('guesses', [])
-        guesses.append(answer) if answer else guesses.append(guess.title())
-        session['guesses'] = guesses
-        
-        if correct and answer:
-            correct_guesses = session.get('correct_guesses', [])
-            correct_guesses.append(answer)
-            session['correct_guesses'] = correct_guesses
-            
-            if session.get('category') == 'player':
-                info = _create_info(answer)
-            else:
-                info = []
-        
-        # If answer incorrect and not previously guessed, decrease lives
-        elif not repeat:
+        if repeat:
+            pass
+        elif correct and answer:
+            _update_session('correct_guesses', answer)
+            info = get_info(answer)
+        else:
+            # If answer incorrect and not previously guessed, decrease lives
             lives = session.get('lives', 0)
             session['lives'] = lives-1
-
-    # When lives reach 0, game over
+        
+    
     if session.get('lives', 0) == 0:
-        game_over = True
+        is_game_over = True
     else:
-        game_over = False
-
+        is_game_over = False
 
     return render_template(
         'tenable_ui/game.html',
-        game_name=game_name,
+        origin=origin,
         question=session.get('question'),
-        category=session.get('category', None),
+        category=session.get('category'),
         answers=session.get('correct_guesses', []),
-        lives=session.get('lives', 3),
-        info=info if 'info' in locals() else [],
-        game_over=game_over
+        lives=session.get('lives'),
+        info=info,
+        game_over=is_game_over
     )
 
 
 @game_bp.route('/game_over', methods=['POST'])
 def game_over():
     correct_guesses = session.get('correct_guesses', [])
-    correct_answers = session.get('correct_answers', [])
+    correct_answers = session.get('answers', [])
 
     answers = correct_guesses + [a for a in set(correct_answers) if a not in correct_guesses]
 
@@ -106,57 +61,61 @@ def game_over():
     )
 
 
-def _check_guess(guess):
+@game_bp.route('/get_info/<answer>', methods=['GET'])
+def get_info(answer: str) -> list:
+    category = session.get('category')
+    # use game_info key --> category
+    info = []
+    answers = session.get('response', [])
+    for dic in answers:
+        if dic[category] == answer:
+            new_dic = dic.copy()
+            new_dic.pop(category)
+            info.append(new_dic)
 
-    repeat = False
-    correct = False
-    answer = None
-
-    if len(guess.split()) > 2:
-        surname = ' '.join(guess.split()[-2:])
+    if request.method == 'GET':
+        return jsonify(info)
     else:
-        surname = guess.split()[-1]
+        return info
 
-    for name in set(session.get('correct_answers', [])):
-            if guess in session.get('guesses', []):
-                repeat = True
-                continue
-            if unidecode(guess.casefold()) == unidecode(name.casefold()): # match guess without accents + case insensitive
-                correct = True
-                answer = name
-                break
-            if len(name.split()) > 2:
-                if surname == ' '.join(name.split()[-2:]):
-                    correct = True
-                    answer = name
-                    break
-            else:
-                if surname == name.split()[-1]:
-                    correct = True
-                    answer = name
-                    break
 
+def _build_session(game_info: dict) -> None:
+    current_app.logger.info('Changing session variables for new game...')
+    try:
+        func = game_info.get('func')
+        response, answers = func()
+    except Exception as e:
+        current_app.logger.error(f'Error getting challenge function: {e}')
+        current_app.logger.info(f'func: {func}, response: {response}, answers: {answers}')
+    
+    session.clear()
+
+    session['response'] = response
+    session['answers'] = answers
+    session['question'] = game_info.get('name')
+    session['category'] = game_info.get('category')
+    session['lives'] = 3
+    session['previous_guesses'] = list()
+    session['correct_guesses'] = list()
+    session['info'] = list()
+
+
+def _check_guess(guess: str) -> tuple[bool, bool, str]:
+
+    prev_guesses = session.get("previous_guesses")
+    answers = session.get("answers")
+
+    func = lambda x: x.casefold()
+
+    repeat = True if guess.casefold() in list(map(func, prev_guesses)) else False
+    correct = True if guess.casefold() in list(map(func, answers)) else False
+    answer = guess.title() if correct else None
+    
     return repeat, correct, answer
 
 
-##### CONSOLIDATE FUNCTIONS
-def _create_info(answer):
-    answers = session.get('response', [])
-    
-    info = []
-
-    for dic in answers:
-        if dic['player'] == answer:
-            info.append({'season': dic['season'], 'goals': dic['goals']})
-
-    return info
-
-
-@game_bp.route('/get_info/<player>', methods=['GET'])
-def get_info(player):
-    info = []
-    answers = session.get('response', [])
-    for dic in answers:
-        if dic['player'] == player:
-            info.append({'season': dic['season'], 'goals': dic['goals']})
-    return jsonify(info)
+def _update_session(key: str, new_value: str) -> None:
+    update = session.get(key)
+    if update is not None:
+        update.append(new_value)
+        session[key] = update

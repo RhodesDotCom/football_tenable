@@ -15,10 +15,29 @@ function display_info(player, data) {
         $infoDiv.append('<h2 class="center-align">' + player + '</h2>');
 
         var $table = $('<table class="full-width" id="info-table"></table>');
-        $table.append('<tr><th>Season</th><th>Goals</th></tr>');
+        
+        headings = Object.keys(data[0])
+
+        var seasonIndex = headings.indexOf('season');
+        if (seasonIndex > -1) {
+            headings.splice(seasonIndex, 1);
+            headings.unshift('season');
+        }
+
+        var $tr = $('<tr></tr>');
+        $.each(headings, function(index, heading) {
+            var $th = $('<th></th').text(heading);
+            $tr.append($th)
+        });
+        $table.append($tr)
 
         $.each(data, function(index, row) {
-            $table.append('<tr><td>' + row['season'] + '</td><td>' + row['goals'] + '</td></tr>');
+            var $tr = $('<tr></tr>');
+            $.each(headings, function(index, heading) {
+                var $td = $('<td></td>').text(row[heading]);
+                $tr.append($td);
+            });
+            $table.append($tr);
         });
         $infoDiv.append($table);
         

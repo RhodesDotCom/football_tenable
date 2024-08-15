@@ -32,7 +32,7 @@
                             {% endif %}
                         {% endfor %}
                     </div>
-                    <form id="guess-form" action="{{ url_for('game_bp.game', game_name=game_name) }}" method="POST">
+                    <form id="guess-form" action="{{ origin }}" method="POST">
                         <input type="text" name="guess" id="guess" data-category="{{ category }}" autofocus="autofocus">
                     </form>
 

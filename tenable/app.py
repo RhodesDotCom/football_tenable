@@ -1,7 +1,6 @@
 from flask import Flask, redirect, url_for
 import logging
 
-
 from tenable_ui.routes import game_bp
 from config import Config
 from cache import cache
@@ -14,11 +13,16 @@ cache.init_app(app)
 
 app.register_blueprint(game_bp, url_prefix='/game')
 
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s in %(module)s [%(filename)s:%(lineno)d]: %(message)s'
+)
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+app.logger.handlers.clear()
+app.logger.addHandler(handler)
+
 #I think this module is broken, logging level ERROR or higher == NOTSET
 logging.getLogger('country_converter').setLevel(logging.ERROR)
-
-
-
 
 
 @app.route('/')

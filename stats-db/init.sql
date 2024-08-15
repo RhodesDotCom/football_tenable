@@ -1,68 +1,85 @@
 CREATE SCHEMA IF NOT EXISTS stats_schema;
 SET search_path TO stats_schema;
 
-CREATE TABLE IF NOT EXISTS player_stats (
-    Player VARCHAR(255) NOT NULL,
-    Season VARCHAR(255) NOT NULL,
-    Age int,
-    Nationality VARCHAR(255),
-    Team VARCHAR(255),
-    Competition VARCHAR(255),
-    MP int NOT NULL,
-    Min int,
-    "90s" FLOAT,
-    Starts int,
-    Subs int,
-    unSub FLOAT,
-    Goals int,
-    Ast int,
-    "G+A" int,
-    Non_penalty_goals FLOAT,
-    Penalties FLOAT,
-    PK_attempted FLOAT,
-    PK_missed FLOAT,
-    Pos VARCHAR(255)
+create table if not exists players (
+	player_id SERIAL primary key,
+	player_name varchar(255) not null,
+	nationality varchar(255)
 );
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM player_stats LIMIT 1) THEN
-        COPY player_stats FROM '/docker-entrypoint-initdb.d/csv_data/players.csv' DELIMITER ',' CSV HEADER;
-    END IF;
-END $$;
+
+CREATE TABLE IF NOT EXISTS player_stats (
+	stats_id SERIAL primary key,
+	player_id integer references players (player_id),
+    season varchar(255),
+	"age" int,
+    team VARCHAR(255),
+    competition VARCHAR(255),
+    mp int NOT NULL,
+    min int,
+    "90s" FLOAT,
+    starts int,
+    subs int,
+    unsub FLOAT,
+    goals int,
+    assists int,
+    "G+A" int,
+    non_penalty_goals FLOAT,
+    penalties FLOAT,
+    penalties_attempted FLOAT,
+    penalties_missed FLOAT,
+    position VARCHAR(255)
+);
+create index idx_player_stats_player_id
+on player_stats(player_id);
 
 CREATE TABLE IF NOT EXISTS countries (
     country_code VARCHAR(3) NOT NULL,
-    country VARCHAR(255) NOT NULL
+    country VARCHAR(255) NOT NULL,
+    primary key(country_code, country)
 );
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM countries LIMIT 1) THEN
-        COPY countries FROM '/docker-entrypoint-initdb.d/csv_data/countries.csv' DELIMITER ',' CSV HEADER;
-    END IF;
-END $$;
 
 CREATE OR REPLACE VIEW player_goals_by_season_ranked as
-	select 
-		player,
-		season,
-		goals,
-		ROW_NUMBER() OVER (PARTITION BY season ORDER BY goals DESC) AS rn
-	from player_stats ps
-	where season != '2023-2024' and goals is not null;
+    select 
+        p.player_name
+        , ps.season
+        , ps.team
+        , ps.goals 
+        , row_number() over (partition by season order by goals desc) as rn
+    from player_stats ps
+    join players p 
+    on p.player_id = ps.player_id
+    where goals is not null;
 
 CREATE OR REPLACE VIEW goals_by_country_ranked as 
     select country, sum(goals) as total_goals
     from player_stats ps
+    join players p 
+    on p.player_id = ps.player_id 
     join countries c 
-    on ps.nationality = c.country_code
-    where season != '2023-2024'
+    on p.nationality = c.country_code
     group by country
     having sum(goals) > 0
     order by total_goals desc;
 
 create view goals_and_assists as
-    select player, season, goals, ast 
-    FROM stats_schema.player_stats
-    order by player, season;
+    select player_name, season, team, goals, assists 
+    from stats_schema.player_stats ps
+    join stats_schema.players p
+    on p.player_id = ps.player_id 
+    order by player_name, season;
 
-
+CREATE OR REPLACE VIEW team_top_scorers_by_season as
+	select player_name, season, team, goals
+	from (
+	    select 
+	        player_name
+	        , season
+	        , team
+	        , goals
+	        , dense_rank () over (partition by season, team order by goals desc) as rn
+	    from player_stats ps
+	    join players p
+	    on p.player_id = ps.player_id
+	    where goals is not null
+	) as foo 
+	where rn = 1;
