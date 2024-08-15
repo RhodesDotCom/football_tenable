@@ -18,6 +18,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from unidecode import unidecode
 import re
+import asyncio
+import aiohttp
+from tqdm.asyncio import tqdm
 
 
 warnings.filterwarnings(action='ignore', category=DeprecationWarning)
@@ -25,18 +28,20 @@ warnings.filterwarnings(action='ignore', category=DeprecationWarning)
 load_dotenv()
 
 
-MAX_PAGE = 18200 #91250 for top 5
+# MAX_PAGE = 18200 #91250 for top 5
+# MAX_PAGE = 92000
+MAX_PAGE = 5000
 HEADERS = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
 FBREF = 'https://fbref.com/en/'
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def login():
+def login(session=requests.Session()):
     login_url = 'https://stathead.com/users/login.cgi'
     user = os.getenv('STATHEAD_EMAIL')
     pswd = os.getenv('STATHEAD_PSWD')
 
-    session = requests.Session()
+    # session = requests.Session()
     login_page = session.get(login_url)
     soup = BeautifulSoup(login_page.content, 'html.parser')
 
@@ -407,4 +412,5 @@ def create_player_stats_data(players: pd.DataFrame):
     stats_table.to_csv(os.path.join(CURRENT_DIR, 'data/player_stats.csv'), index=False, header=False)
 
 
-main(getplayers=False, gettwoteams=False, twoteamsfix=True)
+# main(getplayers=False, gettwoteams=False, twoteamsfix=True)
+
