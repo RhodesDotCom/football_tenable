@@ -1,8 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-from pprint import pprint as pp
-
-from utilities.players import write_to_csv
 
 
 def get_country_codes():
@@ -29,7 +26,3 @@ def get_country_codes():
             data.append([c_code, c_name])
 
     return data
-
-data = get_country_codes()
-output_csv = '../stats-db/csv_data/countries.csv'
-write_to_csv(output_csv, data)

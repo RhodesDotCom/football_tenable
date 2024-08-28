@@ -53,7 +53,13 @@ def login(session=requests.Session()):
         'csrf_token': csrf_token
     }
 
+    # print(f'get request csrf token: {csrf_token}')
     login_response = session.post(login_url, data=login_data)
+    print(login_page)
+    print(login_response)
+    # soup = BeautifulSoup(login_response.content, 'html.parser')
+    # csrf_token = soup.find('input', {'name': 'csrf_token'})['value']
+    # print(f'post request csrf token: {csrf_token}')
 
     if login_response.status_code == 200:
         return session
@@ -413,4 +419,4 @@ def create_player_stats_data(players: pd.DataFrame):
 
 
 # main(getplayers=False, gettwoteams=False, twoteamsfix=True)
-
+r = login()
