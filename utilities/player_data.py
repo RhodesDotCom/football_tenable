@@ -26,17 +26,19 @@ MAX_PAGE = 200#93600
 load_dotenv()
 
 def main():
-    players, cookie = asyncio.run(get_all_players())
+    players = asyncio.run(get_all_players())
     players = pd.DataFrame(players, columns=HEADERS)
+    if not os.path.exists(os.path.join(CURRENT_DIR, 'data')):
+        os.makedirs(os.path.join(CURRENT_DIR, 'data'))
     players.to_csv(os.path.join(CURRENT_DIR, 'data/all_players.csv'), index=False, header=False)
 
-    return players, cookie
+    return players
 
 
 async def get_all_players() -> list: 
     url = "https://stathead.com/fbref/player-season-finder.cgi?request=1&height_type=height_meters&order_by_asc=1&force_min_year=1&phase_id=0&order_by=name_display_csk&per90min_val=5&comp_type=b5&match=player_season&comp_gender=m&per90_type=player&weight_type=kgs&offset={offset}"
     async with ClientSession() as session:
-        session, cookie = await login(session)
+        session = await login(session)
         
         tasks = [
             get_player_from_page(session, url.format(offset=offset))
@@ -44,7 +46,7 @@ async def get_all_players() -> list:
         ]
 
         results = await tqdm.gather(*tasks, desc="Scraping Progress", total=MAX_PAGE//200)
-        return [row for page in results for row in page], cookie
+        return [row for page in results for row in page]
 
 
 async def login(session: ClientSession):
@@ -67,7 +69,7 @@ async def login(session: ClientSession):
         cookie.load(header.split(';')[0] + '; path=/; secure')
     session.cookie_jar.update_cookies(cookie)
 
-    return session, cookie
+    return session
 
 
 async def get_player_from_page(session, url):
@@ -108,22 +110,4 @@ async def manual_add_page(page_numbers):
     return [row for page in results for row in page]
 
 
-def col_format(df):
-    unique_values = df.player_id.unique()
-    value_to_int = {val: idx+1 for idx, val in enumerate(unique_values)}
-    df.player_id = df.player_id.map(value_to_int)
-
-    df.Age = df.Age.fillna(0)
-    df.Age = df.Age.astype("int64")
-
-    #split nation
-    df.Nation = df.Nation.str.split().str[1]
-    
-    #split competition
-    df.Comp = df.Comp.str.split().str[1:].str.join(' ')
-
-    #int minutes
-    df.Min = df.Min.str.replace(',','').replace('', 0)
-    df.Min = df.Min.fillna(0)
-    df.Min = df.Min.astype(int)
-
+main()

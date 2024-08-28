@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import logging
 
 from player_data import main as get_player_data
 from two_teams_fix import main as format_two_team_rows
@@ -12,12 +13,12 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def player_data():
     try:
-        player_data, cookie = get_player_data()
-        new_rows = format_two_team_rows(player_data, cookie)
+        player_data = get_player_data()
+        new_rows = format_two_team_rows(player_data)
         indices = player_data[player_data['Team'] == '2 Teams'].index.tolist()
 
         player_data.drop(indices, axis=0, inplace=True)
-        player_data = pd.concat([player_data, new_rows], ignore_index=True)
+        player_data = pd.concat([player_data, pd.DataFrame(new_rows, columns=player_data.columns)], ignore_index=True)
         col_format(player_data)
         player_data.sort_values(by=['player_id', 'Age'], inplace=True)
     except Exception as e:
@@ -48,7 +49,7 @@ def col_format(df):
     #int minutes
     df.Min = df.Min.str.replace(',','').replace('', 0)
     df.Min = df.Min.fillna(0)
-    df.Min = df.Min.astype(int)
+    df.Min = df.Min.astype("int64")
 
 
 player_data()
