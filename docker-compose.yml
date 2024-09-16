@@ -33,4 +33,11 @@ services:
       - postgres
     env_file:
       - ./db-load/.env
+
+  utilities:
+    build: ./utilities
+    volumes:
+      - ./utilities:/app
+    env_file:
+      - ./utilities/.env
     

@@ -1,0 +1,7 @@
+pandas
+asyncio
+aiohttp
+python-dotenv
+BeautifulSoup4
+tqdm
+requests
