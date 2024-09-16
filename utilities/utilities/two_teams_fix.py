@@ -1,61 +1,82 @@
 import os
 import pandas as pd
-import asyncio
-from aiohttp import ClientSession
+import requests
 import sys
 import time
-from tqdm.asyncio import tqdm
+from datetime import datetime
+from tqdm import tqdm
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 
 
 HEADERS = ['player_id','player_name','Season','Age','Nation','Team','Comp','MP','Min','90s','Starts','Subs','unSub','Gls','Ast','G+A','G-PK','PK','PKatt','PKm','Pos']
 FBREF = 'https://fbref.com/en/'
-MAX_POOL_SIZE = 10
+WAIT_TIME = 4.5
+
+
+class RateLimitRequester:
+    def __init__(self):
+        self.last_request = datetime.min
+
+    def makeRequest(self, url):
+        td = (datetime.now() - self.last_request).total_seconds()
+        if td < WAIT_TIME:
+            time.sleep(WAIT_TIME-td)
+        self.last_request = datetime.now()
+        
+        r = requests.get(url)
+        if r.status_code == 429:
+            print("\nrate limit hit")
+            print(r.headers.get('Retry-After'))
+            r.close()
+            sys.exit()
+        else:
+            # print(f' success {r.status_code}')
+            r.close()
+            return r.text
 
 
 def main(players: pd.DataFrame = None) -> list:
-    new_rows = asyncio.run(get_two_teams(players))
-
+    new_rows = get_two_teams(players)
     return new_rows
 
 
-async def get_two_teams(df=None):
-
+def get_two_teams(df: pd.DataFrame | None = None) -> list:
+   
     if df is None:
         path = 'data/all_players.csv'
         current_dir = os.path.dirname(os.path.abspath(__file__))
         csv_path = os.path.join(current_dir, path)
         df = pd.read_csv(csv_path, names=HEADERS)
+    
+    two_team_rows = df[(df.Team == '2 Teams') | (df.Team == '3 Teams')]
 
-    two_team_rows = df[(df.Team == '2 Teams')]
+    requester = RateLimitRequester()
 
-    tasks = [split_2_team_rows(row) for row in two_team_rows.values.tolist()]
-    new_rows = await tqdm.gather(*tasks, desc="Creating new rows", total=len(two_team_rows))
-        
-    return [row for rows in new_rows for row in rows]
+    new_rows = []
+    errors = []
+    blanks = []
+    for row in tqdm(iterable=two_team_rows.values.tolist(), desc="Creating new rows", total=len(two_team_rows)):
+        try:
+            output = split_2_team_rows(requester, row)
+            if not output:
+                blanks.append(row)
+            new_rows.append(output)
+        except Exception as e:
+            errors.append((e, row))
+    
+    new_rows.append([[],[]])
+
+    return [row for rows in new_rows for row in rows if row], blanks, errors
 
 
-async def split_2_team_rows(original_row):
+def split_2_team_rows(requester: RateLimitRequester, original_row: list) -> list[list]:
     player_id = original_row[0]
     player = original_row[1]
     year = original_row[2]
-    
-    async with ClientSession() as client:
-        url = FBREF + f"players/{player_id}/{player.replace(' ','-')}"
-        async with client.get(url) as response:
-            if response.status == 429:
-                retry_after = int(response.headers.get("Retry-After", 10))
-                print(f"Rate limited. Retrying after {retry_after} seconds...")
-                await asyncio.sleep(retry_after)
-            else:
-                html = await response.text()
+
+    url = FBREF + f"players/{player_id}/{player.replace(' ','-')}"
+    html = requester.makeRequest(url)
     soup = BeautifulSoup(html, 'html.parser')
-    # print(html)
 
     table = soup.find('table', {'id': 'stats_standard_dom_lg'})
     player_data = []
@@ -98,7 +119,7 @@ async def split_2_team_rows(original_row):
 
         except IndexError:
             print(f'IndexError getting player or subs data, line 94. player_data: {player_data}, subs_data: {subs_data} ')
-            return []
+            raise
     else:
         print('Error getting data from table')
         print(f'Player: {player}, year: {year}')
@@ -112,6 +133,7 @@ def format_tt_row(original_row, new_rows):
     for row in new_rows:
         formatted_row = original_row.copy()
         formatted_row[5] = row[1] # team
+        formatted_row[6] = row[3] # league
         formatted_row[7] = row[5]  # MP
         formatted_row[8] = row[7].replace(',', '') # Min
         formatted_row[9] = row[8] # 90s
@@ -130,6 +152,3 @@ def format_tt_row(original_row, new_rows):
         formatted_rows.append(formatted_row)
     return formatted_rows
 
-
-rows = main()
-# print(rows)
