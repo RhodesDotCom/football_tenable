@@ -20,15 +20,16 @@ class Queries:
             return [(dict(zip(columns, row))) for row in rows]
 
 
-    def get_inputs(self, category='player_name'):
+    def get_inputs(self, category: str = 'player_name', league: str | None = None) -> dict[str, list]:
         for conn in self.get_conn():
 
             inspector = inspect(conn)
             columns = []
             try:
-                columns += inspector.get_columns('player_stats', schema='stats_schema')
+                columns += inspector.get_columns('season_stats', schema='stats_schema')
                 columns += inspector.get_columns('countries', schema='stats_schema')
                 columns += inspector.get_columns('players', schema='stats_schema')
+                columns += inspector.get_columns('leagues', schema='stats_schema')
             except sqlalchemy.exc.NoSuchTableError as e:
                 print(f"Error: {e}")
                 raise           
@@ -40,20 +41,26 @@ class Queries:
                 return None
             else:
 
-                sql = text(f"""select distinct {category}
-                        from stats_schema.player_stats ps
+                sql = f"""select distinct {category}
+                        from stats_schema.season_stats ss
                         join stats_schema.players p
-                        on p.player_id = ps.player_id
+                        on p.player_id = ss.player_id
                         join stats_schema.countries c
                         on p.nationality = c.country_code
-                        order by {category};""")
-
-                results = conn.execute(sql)
+                        join stats_schema.leagues l
+                        on l.league_id = ss.league_id 
+                        where 1=1"""
+                
+                if league:
+                    sql += f""" and l.league_name = '{league}'
+                            order by {category};"""
+                
+                results = conn.execute(text(sql))
 
                 return {category: [row[0] for row in results]}
 
 
-    def get_golden_boot_winners(self):
+    def get_golden_boot_winners(self, ):
         for conn in self.get_conn():
 
             sql = '''SELECT player_name, season, goals

@@ -78,13 +78,16 @@ $(function() {
         source: function(request, response) {
 
             let category = $('#guess').data('category');
+            let league = $('#guess').data('league');
+
 
             $.ajax({
                 url: "/game/autocomplete",
                 dataType: 'json',
                 data: {
                     query: request.term,
-                    category: category
+                    category: category,
+                    league: league
                 },
                 success: function(data) {
                     response(data);

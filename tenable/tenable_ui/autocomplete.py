@@ -6,8 +6,8 @@ from tenable_ui.client import get_input_list
 
 
 # @cache.cached(0 ,key_prefix='autocomplete')
-def input_list(category):
-    response = get_input_list(category)
+def input_list(category: str | None = None, league: str | None = None) -> list[str]:
+    response = get_input_list(category, league)
     inputs = response.get(category, [])
 
     if not inputs:
@@ -20,11 +20,12 @@ def input_list(category):
 def autocomplete():
     query = request.args.get('query', '').casefold()
     category = request.args.get('category', '')
+    league = request.args.get('league')
 
     if not query:
         return jsonify([])
     
-    items = input_list(category)
+    items = input_list(category, league)
     
     filtered_list = []
     query_len = len(query.split(' '))

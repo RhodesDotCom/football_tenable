@@ -15,8 +15,9 @@ def get_queries():
 @query_bp.route('/get_inputs', methods=['GET'])
 def get_inputs():
     category = request.args.get('category')
+    league = request.args.get('league')
     queries = get_queries()
-    results = queries.get_inputs(category)
+    results = queries.get_inputs(category, league)
     response = Response(jsonify(results).response, status=200, mimetype='application/json')
     return response
 

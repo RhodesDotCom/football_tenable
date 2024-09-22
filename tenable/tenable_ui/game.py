@@ -38,6 +38,7 @@ def build_game(origin: str, game_info: dict = {}, guess: str = None):
         origin=origin,
         question=session.get('question'),
         category=session.get('category'),
+        league=session.get('league'),
         answers=session.get('correct_guesses', []),
         lives=session.get('lives'),
         info=info,
@@ -94,6 +95,7 @@ def _build_session(game_info: dict) -> None:
     session['answers'] = answers
     session['question'] = game_info.get('name')
     session['category'] = game_info.get('category')
+    session['league'] = game_info.get('league')
     session['lives'] = 3
     session['previous_guesses'] = list()
     session['correct_guesses'] = list()
