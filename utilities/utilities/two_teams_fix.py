@@ -36,8 +36,8 @@ class RateLimitRequester:
 
 
 def main(players: pd.DataFrame = None) -> list:
-    new_rows = get_two_teams(players)
-    return new_rows
+    new_rows, errors = get_two_teams(players)
+    return new_rows, errors
 
 
 def get_two_teams(df: pd.DataFrame | None = None) -> list:
@@ -54,19 +54,18 @@ def get_two_teams(df: pd.DataFrame | None = None) -> list:
 
     new_rows = []
     errors = []
-    blanks = []
     for row in tqdm(iterable=two_team_rows.values.tolist(), desc="Creating new rows", total=len(two_team_rows)):
         try:
             output = split_2_team_rows(requester, row)
             if not output:
-                blanks.append(row)
+                errors.append(row)
             new_rows.append(output)
         except Exception as e:
             errors.append((e, row))
     
     new_rows.append([[],[]])
 
-    return [row for rows in new_rows for row in rows if row], blanks, errors
+    return [row for rows in new_rows for row in rows if row], errors
 
 
 def split_2_team_rows(requester: RateLimitRequester, original_row: list) -> list[list]:
@@ -78,53 +77,58 @@ def split_2_team_rows(requester: RateLimitRequester, original_row: list) -> list
     html = requester.makeRequest(url)
     soup = BeautifulSoup(html, 'html.parser')
 
-    table = soup.find('table', {'id': 'stats_standard_dom_lg'})
-    player_data = []
-    if table:
-        tbody = table.find('tbody')
-        rows = tbody.find_all('tr')
-        player_data = []
-        for row in rows:
-            year_th = row.find('th')
-            if year_th and year_th.text.strip() == year:
-                cells = row.find_all('td')
-                span_tag = cells[3].find('span')
-                if span_tag and span_tag.text.strip() != 'Jr.':
-                    player_data.append([cell.text.strip() for cell in cells])
-    else:
+    stats_table = soup.find('table', {'id': 'stats_standard_dom_lg'})
+    subs_table = soup.find('table', {'id': 'stats_playing_time_dom_lg'})
+    
+    if not stats_table:
         print(f'ERROR: {player}, {year} - stats_standard_dom_lg not found')
-
-    table = soup.find('table', {'id': 'stats_playing_time_dom_lg'})
-    subs_data = []
-    if table:
-        tbody = table.find('tbody')
-        rows = tbody.find_all('tr')
-        for row in rows:
-            year_th = row.find('th')
-            if year_th and year_th.text.strip() == year:
-                cells = row.find_all('td')
-                span_tag = cells[3].find('span')
-                if span_tag and span_tag.text.strip() != 'Jr.':
-                    #13 and 15
-                    subs_data.append([cell.text.strip() for cell in cells])
-    else:
+    if not subs_table:
         print(f'ERROR: {player}, {year} - stats_playing_time_dom_lg not found')
     
-    if player_data and subs_data:
-        try:
-            player_data[0].extend([subs_data[0][13], subs_data[0][15]])
-            player_data[1].extend([subs_data[1][13], subs_data[1][15]])
-            
-            return format_tt_row(original_row, player_data)
+    player_data = []
+    if stats_table and subs_table:
+    
+        stats_tbody = stats_table.find('tbody')
+        stats_rows = stats_tbody.find_all('tr')
 
-        except IndexError:
-            print(f'IndexError getting player or subs data, line 94. player_data: {player_data}, subs_data: {subs_data} ')
-            raise
+        subs_tbody = subs_table.find('tbody')
+        subs_rows = subs_tbody.find_all('tr')
+
+        player_data = []
+        for index, row in enumerate(stats_rows):
+            year_th = row.find('th')
+            if year_th and year_th.text.strip() == year:
+                stats_cells = row.find_all('td')
+                span_tag = stats_cells[3].find('span')
+                if span_tag and span_tag.text.strip() != 'Jr.':
+                    row = []
+                    row.extend([cell.text.strip() for cell in stats_cells])
+                    subs_cells = subs_rows[index].find_all('td')
+                    # print([cell.text.strip() for cell in subs_cells])
+                    row.extend([subs_cells[13].text.strip(), subs_cells[15].text.strip()])
+                    player_data.append(row)
+
+        return format_tt_row(original_row, player_data)
+    
     else:
-        print('Error getting data from table')
-        print(f'Player: {player}, year: {year}')
-        print(f'player_data: {bool(player_data)}, sub_data: {bool(subs_data)}')
         return []
+
+    
+    
+    
+    # if player_data and subs_data:
+    #     try:
+    #         for i in range(len(player_data)):
+    #             player_data[i].extend([subs_data[i][13], subs_data[i][15]])
+    #             return format_tt_row(original_row, player_data)
+    #     except IndexError:
+    #         print(f'IndexError getting player or subs data, line 94. player_data: {player_data}, subs_data: {subs_data} ')
+    #         raise
+    # else:
+    #     print('Error getting data from table')
+    #     print(f'Player: {player}, year: {year}')
+    #     print(f'player_data: {bool(player_data)}, sub_data: {bool(subs_data)}')
+    #     return []
 
 
 def format_tt_row(original_row, new_rows):

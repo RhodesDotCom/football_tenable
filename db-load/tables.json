@@ -1,0 +1,6 @@
+{
+    "countries": ["country_code", "country"],
+    "players": ["player_id", "player_name","nationality"],
+    "leagues": ["league_id", "league_name"],
+    "season_stats": ["player_id","season","age","team","league_id","mp","min","90s","starts","subs","unsub","goals","assists","G+A","non_penalty_goals","penalties","penalties_attempted","penalties_missed","position"]
+}

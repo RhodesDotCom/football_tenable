@@ -26,6 +26,7 @@ services:
       - "5432:5432" 
     volumes:
       - ./stats-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./stats-db/views.sql:/docker-entrypoint-initdb.d/views.sql
   
   db_load:
     build: ./db-load

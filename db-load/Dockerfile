@@ -7,4 +7,5 @@ RUN pip install -r requirements.txt
 
 COPY . /app
 
-CMD [ "python", "db_load.py" ]
+ENTRYPOINT ["python"]
+CMD ["db_load.py"]

@@ -2,22 +2,21 @@ import os
 import psycopg2
 import time
 import pandas as pd
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, inspect, text
+import json
 
 
-# DB_USER = os.environ.get('POSTGRES_USER')
-# DB_PSWD = os.environ.get('POSTGRES_PASSWORD')
-# DB_NAME = os.environ.get('POSTGRES_DB')
-# DB_HOST = os.environ.get('POSTGRES_HOST')
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://stats_user:stats_password@postgres:5432/stats_db'
+load_dotenv()
+
+DB_USER = os.getenv('POSTGRES_USER')
+DB_PSWD = os.getenv('POSTGRES_PASSWORD')
+DB_HOST = os.getenv('POSTGRES_HOST')
+DB_PORT = os.getenv('POSTGRES_PORT')
+DB_NAME = os.getenv('POSTGRES_DB')
+
+SQLALCHEMY_DATABASE_URI = f'postgresql+psycopg2://{DB_USER}:{DB_PSWD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 SCHEMA = "stats_schema"
-
-
-TABLE_HEADERS = {
-    "countries": ['country_code', 'country'],
-    "players": ['player_id', 'player_name','nationality'],
-    "player_stats": ['player_id','season','age','team','competition','mp','min','90s','starts','subs','unsub','goals','assists','G+A','non_penalty_goals','penalties','penalties_attempted','penalties_missed','position'],
-}
 
 
 def wait_for_db():
@@ -66,12 +65,13 @@ def build_tables():
     except Exception as e:
         print(f"Error creating engine: ({e})")
 
-    tables = ['countries', 'players', 'player_stats']
+    with open('tables.json', 'r') as f:
+        tables = json.loads(f.read())
 
-    for table in tables:
+    for table in tables.keys():
         if check_table_exists(engine, table) and check_table_is_empty(engine, table):
             print(f'loading data to {table}...')
-            df = pd.read_csv(f'data/{table}.csv', names=TABLE_HEADERS[table])
+            df = pd.read_csv(f'data/{table}.csv', names=tables[table])
             try:
                 df.to_sql(table, engine, schema=SCHEMA, if_exists='append', index=False)
             except Exception as e:
