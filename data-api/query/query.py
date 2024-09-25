@@ -8,7 +8,7 @@ from config import Config
 
 class Queries:
     def get_conn(self):
-        engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
+        engine = create_engine(Config.STATS_DB_URI)
         connection = engine.connect()
         try:
             yield connection
