@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask
 
 from query.routes import query_bp
 from config import Config

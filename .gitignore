@@ -1,5 +1,6 @@
 __pycache__/
 utilities/.venv
 utilities/.env
+db-load/.env
 todo.txt
 games.txt

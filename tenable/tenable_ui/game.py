@@ -1,9 +1,11 @@
 from flask import render_template, request, session, current_app, jsonify
 from unidecode import unidecode
 import traceback
+import json
 
 from tenable_ui.routes import game_bp
 import tenable_ui.games as games
+from tenable_ui.session_db import add_session_variable, read_session_variable
 
 
 def build_game(origin: str, game_info: dict = {}, guess: str = None):
@@ -64,11 +66,14 @@ def game_over():
 @game_bp.route('/get_info/<answer>', methods=['GET'])
 def get_info(answer: str) -> list:
     category = session.get('category')
-    # use game_info key --> category
+
     info = []
-    answers = session.get('response', [])
+
+    data = read_session_variable(session.get('response'))
+    answers = json.loads(data)
+
     for dic in answers:
-        if dic[category] == answer:
+        if dic[category].casefold() == answer.casefold():
             new_dic = dic.copy()
             new_dic.pop(category)
             info.append(new_dic)
@@ -90,7 +95,7 @@ def _build_session(game_info: dict) -> None:
     
     session.clear()
 
-    session['response'] = response
+    session['response'] = add_session_variable(response)
     session['answers'] = answers
     session['question'] = game_info.get('name')
     session['category'] = game_info.get('category')

@@ -13,11 +13,25 @@ services:
     ports:
       - "5001:5001"
     volumes:
-      - ./data-api:/app 
+      - ./data-api:/app
 
-  postgres:
+  session-api:
+    build: ./session-api
+    ports:
+      - "5002:5002" 
+    volumes:
+      - ./session-api:/app
+
+  db-load:
+    build: ./db-load
+    depends_on:
+      - stats-db
+    env_file:
+      - ./db-load/.env
+
+  stats-db:
     image: postgres:latest
-    container_name: stats_db
+    container_name: stats-db
     environment:
       POSTGRES_DB: stats_db
       POSTGRES_USER: stats_user
@@ -27,13 +41,18 @@ services:
     volumes:
       - ./stats-db/init.sql:/docker-entrypoint-initdb.d/init.sql
   
-  db_load:
-    build: ./db-load
-    depends_on:
-      - postgres
-    env_file:
-      - ./db-load/.env
-
+  session-db:
+    image: postgres:latest
+    container_name: session-db
+    environment:
+      POSTGRES_DB: session_db
+      POSTGRES_USER: session_user
+      POSTGRES_PASSWORD: session_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./session-db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  
   utilities:
     build: ./utilities
     volumes:
