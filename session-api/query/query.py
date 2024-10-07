@@ -1,51 +1,65 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, insert, Table, MetaData
 from sqlalchemy.exc import SQLAlchemyError
 import json
-from flask import current_app
+from flask import current_app, jsonify
+from datetime import datetime as dt
+from datetime import timedelta
 
 from config import Config
 
 
 class Session:
+    def __init__(self) -> None:
+        self.engine = create_engine(Config.SESSION_DB_URI)
+        self.metadata = MetaData()
+        self.sessions_table = Table(
+            'sessions',
+            self.metadata,
+            autoload_with=self.engine,
+            schema='session_schema'
+        )
+    
+
     def get_conn(self):
-        engine = create_engine(Config.SESSION_DB_URI)
-        connection = engine.connect()
+        connection = self.engine.connect()
         try:
             yield connection
         finally:
             connection.close()
 
 
-    def add_session_variable(self, id, data):
+    def add_session_variable(self, data):
         
-        sql = '''
-            INSERT INTO session_schema.sessions
-            (session_id, session_data, created_at, expires_at)
-            VALUES (
-                :session_id,
-                :session_data,
-                NOW(),
-                NOW() + INTERVAL '2 hours'
-            )'''
-        
+        sql = (
+            insert(self.sessions_table).
+            values(
+                session_data=data,
+                created_at=dt.now(),
+                expires_at=dt.now() + timedelta(hours=2)
+            )
+        )
+
         for conn in self.get_conn():
             try:
                 with conn.begin():
-                    conn.execute(
-                        text(sql), 
-                        {'session_id': id, 'session_data': json.dumps(data)}
-                    )
+
+                    r = conn.execute(sql)
+                return r.inserted_primary_key, 201
             except SQLAlchemyError as e:
                 current_app.logger.error(e)
-                # return {'success': False, 'message': str(e)}
-    
+                return jsonify({'error': str(e)}), 500 
+
+
     def read_session_variable(self, id):
         sql = '''
             SELECT session_data
-            FROM session_schema.session
+            FROM session_schema.sessions
             WHERE session_id = :id;'''
         
         for conn in self.get_conn():
-            results = conn.execute(text(sql), {'id':id})
-        return results
+            r = conn.execute(text(sql), {'id':id})
 
+            data = r.scalar()
+            
+            if data:
+                return data

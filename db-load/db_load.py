@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, inspect, text
 # DB_PSWD = os.environ.get('POSTGRES_PASSWORD')
 # DB_NAME = os.environ.get('POSTGRES_DB')
 # DB_HOST = os.environ.get('POSTGRES_HOST')
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://stats_user:stats_password@postgres:5432/stats_db'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://stats_user:stats_password@stats-db:5432/stats_db'
 SCHEMA = "stats_schema"
 
 

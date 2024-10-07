@@ -128,7 +128,3 @@ class Queries:
             columns = results.keys()
 
             return self.format_results(columns, results)
-
-
-    
-         
