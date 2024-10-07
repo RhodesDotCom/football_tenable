@@ -4,8 +4,7 @@ import requests
 from config import Config
 
 
-config = Config()
-url = config.DATA_API_URL
+url = Config.DATA_API_URL
 
 
 def get_input_list(category='player_names'):

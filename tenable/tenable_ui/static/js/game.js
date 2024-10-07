@@ -59,7 +59,7 @@ $("#game-over").click(function() {
 
 $(".answer").click(function() {
     let answer = $(this).text().trim();
-
+    console.log(answer)
     $.ajax({
         url: '/game/get_info/' + answer ,
         type: 'GET',
