@@ -38,9 +38,16 @@ def add_session_variable():
 def read_session_variable():
     session_id = request.args.get('session_id')
     session = get_session()
-    data = session.read_session_variable(id=session_id)
+    session_response = session.read_session_variable(id=session_id)
 
-    if data:
-        return jsonify(data), 200
+    if session_response[1] == 200:
+        return jsonify(session_response[0]), 200
+    elif session_response[1] == 404:
+        return jsonify({"message": "session_id not found"}), 404
+    else:
+        jsonify({"message": "error reading session data"}), 500
+
+
+
 
     

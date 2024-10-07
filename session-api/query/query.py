@@ -57,9 +57,15 @@ class Session:
             WHERE session_id = :id;'''
         
         for conn in self.get_conn():
-            r = conn.execute(text(sql), {'id':id})
-
-            data = r.scalar()
+            try:
+                r = conn.execute(text(sql), {'id':id})
+                data = r.scalar()
             
-            if data:
-                return data
+                if data:
+                    return data, 200
+                else:
+                    return None, 404
+            except SQLAlchemyError as e:
+                current_app.logger.error(e)
+                return jsonify({'error': str(e)}), 500 
+                    
